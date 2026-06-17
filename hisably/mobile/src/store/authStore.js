@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { setAuthToken } from '../services/api';
 
+const TEST_OTP = '123456';
+const TEST_MODE = true;
+
 export const useAuthStore = create((set) => ({
   user: null,
   session: null,
@@ -28,11 +31,24 @@ export const useAuthStore = create((set) => ({
   },
 
   sendOtp: async (phone) => {
+    if (TEST_MODE) return;
     const { error } = await supabase.auth.signInWithOtp({ phone: `+91${phone}` });
     if (error) throw error;
   },
 
   verifyOtp: async (phone, otp) => {
+    if (TEST_MODE) {
+      if (otp === TEST_OTP) {
+        setAuthToken('test-token');
+        set({
+          user: { id: '00000000-0000-0000-0000-000000000001', phone: `+91${phone}`, email: '' },
+          session: { access_token: 'test-token' },
+        });
+        return;
+      }
+      throw new Error('गलत OTP। Test OTP: 123456');
+    }
+
     const { data, error } = await supabase.auth.verifyOtp({
       phone: `+91${phone}`,
       token: otp,
