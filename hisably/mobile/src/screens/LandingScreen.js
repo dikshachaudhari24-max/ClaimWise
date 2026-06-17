@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { colors, typography } from '../theme';
 import { PrimaryButton } from '../components';
+import { useAuthStore } from '../store/authStore';
 
 const benefits = [
   { icon: '₹', labelHi: 'CA की ज़रूरत नहीं', labelEn: 'No CA needed for daily tracking', color: colors.success },
@@ -9,7 +10,9 @@ const benefits = [
   { icon: '🔄', labelHi: 'अपना पैसा वापस पाएं', labelEn: 'Recover your blocked ITC', color: colors.warning },
 ];
 
-export const LandingScreen = ({ navigation }) => (
+export const LandingScreen = ({ navigation }) => {
+  const { loginDemo } = useAuthStore();
+  return (
   <View style={styles.container}>
     <View style={styles.saffronStripe} />
     <ScrollView contentContainerStyle={styles.scroll}>
@@ -46,9 +49,16 @@ export const LandingScreen = ({ navigation }) => (
       >
         पहले से account है? Login करें
       </Text>
+      <Text
+        style={[typography.body, styles.demoLink]}
+        onPress={loginDemo}
+      >
+        Demo Mode में देखें
+      </Text>
     </View>
   </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
@@ -74,4 +84,5 @@ const styles = StyleSheet.create({
   aboutSection: { paddingHorizontal: 16, marginBottom: 24 },
   ctaSection: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: colors.surface },
   loginLink: { color: colors.primary, textAlign: 'center', marginTop: 12 },
+  demoLink: { color: colors.textSecondary, textAlign: 'center', marginTop: 12 },
 });

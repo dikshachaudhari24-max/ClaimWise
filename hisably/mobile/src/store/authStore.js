@@ -45,6 +45,11 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  loginDemo: () => {
+    setAuthToken('demo-token');
+    set({ user: { id: 'demo', email: 'demo@hisably.in' }, session: { access_token: 'demo-token' } });
+  },
+
   logout: async () => {
     await supabase.auth.signOut();
     setAuthToken(null);
