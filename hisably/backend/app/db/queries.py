@@ -398,6 +398,15 @@ def get_monthly_analytics(user_id: str, month: str) -> dict:
     }
 
 
+# ──────────────────────────── Users ────────────────────────────
+
+def get_user_by_phone(phone: str) -> dict | None:
+    client = get_admin_client()
+    clean = phone.replace("+", "").replace(" ", "").replace("-", "")
+    result = client.table("users").select("*").like("phone", f"%{clean[-10:]}").limit(1).execute()
+    return result.data[0] if result.data else None
+
+
 def _next_month(month: str) -> str:
     year, m = month.split("-")
     m_int = int(m)

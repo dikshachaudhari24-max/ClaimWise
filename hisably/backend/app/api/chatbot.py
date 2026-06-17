@@ -9,18 +9,16 @@ from app.schemas.all_schemas import ChatbotTextRequest, ChatbotTextResponse, Cha
 
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.post("/query", response_model=ChatbotTextResponse)
-async def text_query(request: ChatbotTextRequest, _user=Depends(verify_jwt)):
+async def text_query(request: ChatbotTextRequest, user=Depends(verify_jwt)):
     """Process a text query through the RAG chatbot."""
-    queries.insert_chat_message(DEMO_USER_ID, "user", request.query)
+    queries.insert_chat_message(user["uid"], "user", request.query)
 
     try:
         from ai.rag.retriever import retrieve_and_respond
 
-        result = retrieve_and_respond(DEMO_USER_ID, request.query, "invoices")
+        result = retrieve_and_respond(user["uid"], request.query, "invoices")
         response_text = result["response"]
         grounded = True
     except Exception as e:
@@ -28,7 +26,7 @@ async def text_query(request: ChatbotTextRequest, _user=Depends(verify_jwt)):
         grounded = False
 
     queries.insert_chat_message(
-        DEMO_USER_ID, "assistant", response_text,
+        user["uid"], "assistant", response_text,
         namespaces=["invoices", "mismatches"], grounded=grounded,
     )
 
@@ -40,7 +38,7 @@ async def text_query(request: ChatbotTextRequest, _user=Depends(verify_jwt)):
 
 
 @router.post("/voice", response_model=ChatbotVoiceResponse)
-async def voice_query(file: UploadFile = File(...), _user=Depends(verify_jwt)):
+async def voice_query(file: UploadFile = File(...), user=Depends(verify_jwt)):
     """Process a voice query through STT, RAG, and TTS."""
     from ai.voice.stt import transcribe
     from ai.voice.tts import synthesize
@@ -56,15 +54,15 @@ async def voice_query(file: UploadFile = File(...), _user=Depends(verify_jwt)):
             raise HTTPException(status_code=400, detail=stt_result["error"])
 
         user_text = stt_result["text"]
-        queries.insert_chat_message(DEMO_USER_ID, "user", user_text)
+        queries.insert_chat_message(user["uid"], "user", user_text)
 
-        result = retrieve_and_respond(DEMO_USER_ID, user_text, "invoices")
+        result = retrieve_and_respond(user["uid"], user_text, "invoices")
         response_text = result["response"]
 
         audio_path = synthesize(response_text, lang=stt_result.get("language", "hi"))
 
         queries.insert_chat_message(
-            DEMO_USER_ID, "assistant", response_text,
+            user["uid"], "assistant", response_text,
             namespaces=["invoices", "mismatches"], grounded=True,
         )
 

@@ -12,11 +12,9 @@ from app.schemas.all_schemas import GSTR2BUploadResponse, MismatchListResponse
 
 router = APIRouter(prefix="/gstr2b", tags=["gstr2b"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.post("/upload", response_model=GSTR2BUploadResponse)
-async def upload_gstr2b(file: UploadFile = File(...), _user=Depends(verify_jwt)):
+async def upload_gstr2b(file: UploadFile = File(...), user=Depends(verify_jwt)):
     """Upload a GSTR-2B file for reconciliation."""
     content = await file.read()
     text = content.decode("utf-8")
@@ -24,10 +22,10 @@ async def upload_gstr2b(file: UploadFile = File(...), _user=Depends(verify_jwt))
     records = list(reader)
 
     upload_id = str(uuid.uuid4())
-    queries.insert_gstr2b_batch(DEMO_USER_ID, records, upload_id)
+    queries.insert_gstr2b_batch(user["uid"], records, upload_id)
 
-    invoices, _ = queries.get_invoices(DEMO_USER_ID, page=1, per_page=1000)
-    gstr2b_records = queries.get_gstr2b_records(DEMO_USER_ID)
+    invoices, _ = queries.get_invoices(user["uid"], page=1, per_page=1000)
+    gstr2b_records = queries.get_gstr2b_records(user["uid"])
 
     mismatches = reconcile(invoices, gstr2b_records)
 
@@ -46,15 +44,15 @@ async def upload_gstr2b(file: UploadFile = File(...), _user=Depends(verify_jwt))
         m["explanation_hi"] = ""
 
     if mismatches:
-        queries.insert_mismatches_batch(DEMO_USER_ID, mismatches)
+        queries.insert_mismatches_batch(user["uid"], mismatches)
 
     return GSTR2BUploadResponse(upload_id=upload_id, status="processed")
 
 
 @router.get("/mismatches", response_model=MismatchListResponse)
-async def get_mismatches(_user=Depends(verify_jwt)):
+async def get_mismatches(user=Depends(verify_jwt)):
     """Get list of invoice vs GSTR-2B mismatches."""
-    mismatches = queries.get_mismatches(DEMO_USER_ID)
+    mismatches = queries.get_mismatches(user["uid"])
     total_blocked = sum(float(m.get("itc_at_risk") or m.get("amount_difference") or 0) for m in mismatches)
     items = []
     for m in mismatches:

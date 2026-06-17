@@ -8,19 +8,17 @@ from app.schemas.all_schemas import MonthlyAnalyticsResponse
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.get("/monthly", response_model=MonthlyAnalyticsResponse)
 async def get_monthly_analytics(
     month: str = Query(default=None, description="Month in YYYY-MM format"),
-    _user=Depends(verify_jwt),
+    user=Depends(verify_jwt),
 ):
     """Get monthly analytics summary."""
     if not month:
         month = datetime.now().strftime("%Y-%m")
 
-    result = queries.get_monthly_analytics(DEMO_USER_ID, month)
+    result = queries.get_monthly_analytics(user["uid"], month)
 
     return MonthlyAnalyticsResponse(
         month=result["month"],

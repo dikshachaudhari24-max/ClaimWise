@@ -8,17 +8,15 @@ from app.schemas.all_schemas import InvoiceListResponse, InvoiceUploadResponse
 
 router = APIRouter(prefix="/invoice", tags=["invoices"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.post("/upload", response_model=InvoiceUploadResponse)
-async def upload_invoice(file: UploadFile = File(...), _user=Depends(verify_jwt)):
+async def upload_invoice(file: UploadFile = File(...), user=Depends(verify_jwt)):
     """Upload an invoice image/PDF for OCR processing."""
     invoice_data = {
         "status": "pending",
         "file_url": f"uploads/{uuid.uuid4()}_{file.filename}",
     }
-    result = queries.insert_invoice(DEMO_USER_ID, invoice_data)
+    result = queries.insert_invoice(user["uid"], invoice_data)
     if not result:
         raise HTTPException(status_code=500, detail="Failed to create invoice record")
     return InvoiceUploadResponse(
@@ -31,10 +29,10 @@ async def upload_invoice(file: UploadFile = File(...), _user=Depends(verify_jwt)
 async def list_invoices(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    _user=Depends(verify_jwt),
+    user=Depends(verify_jwt),
 ):
     """List all invoices for the authenticated user."""
-    invoices, total = queries.get_invoices(DEMO_USER_ID, page=page, per_page=per_page)
+    invoices, total = queries.get_invoices(user["uid"], page=page, per_page=per_page)
     items = []
     for inv in invoices:
         conf = inv.get("confidence_scores") or {}

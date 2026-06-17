@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = "https://your-project.supabase.co"
     SUPABASE_KEY: str = "your-supabase-anon-key"
     SUPABASE_SERVICE_KEY: str = "your-supabase-service-role-key"
+    SUPABASE_JWT_SECRET: str = "your-supabase-jwt-secret"
     GROQ_API_KEY: str = "your-groq-api-key"
     GOOGLE_VISION_KEY: str = "path-to-google-credentials.json"
     OPENAI_API_KEY: str = "your-openai-key"

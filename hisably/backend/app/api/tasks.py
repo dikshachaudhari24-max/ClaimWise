@@ -6,13 +6,11 @@ from app.schemas.all_schemas import TaskDoneRequest, TaskDoneResponse, TaskListR
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.get("/list", response_model=TaskListResponse)
-async def list_tasks(_user=Depends(verify_jwt)):
+async def list_tasks(user=Depends(verify_jwt)):
     """List all pending and completed tasks."""
-    tasks = queries.get_tasks(DEMO_USER_ID)
+    tasks = queries.get_tasks(user["uid"])
     items = []
     for t in tasks:
         items.append({
@@ -28,7 +26,7 @@ async def list_tasks(_user=Depends(verify_jwt)):
 
 
 @router.post("/done", response_model=TaskDoneResponse)
-async def mark_task_done(request: TaskDoneRequest, _user=Depends(verify_jwt)):
+async def mark_task_done(request: TaskDoneRequest, user=Depends(verify_jwt)):
     """Mark a task as completed with proof."""
     result = queries.complete_task(
         task_id=request.task_id,

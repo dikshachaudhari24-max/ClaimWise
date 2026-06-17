@@ -11,15 +11,13 @@ from app.schemas.all_schemas import (
 
 router = APIRouter(prefix="/supplier", tags=["suppliers"])
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 @router.get("/list", response_model=SupplierListResponse)
-async def list_suppliers(_user=Depends(verify_jwt)):
+async def list_suppliers(user=Depends(verify_jwt)):
     """List all suppliers with reliability scores."""
-    suppliers = queries.get_suppliers(DEMO_USER_ID)
-    all_invoices, _ = queries.get_invoices(DEMO_USER_ID, page=1, per_page=1000)
-    all_mismatches = queries.get_mismatches(DEMO_USER_ID)
+    suppliers = queries.get_suppliers(user["uid"])
+    all_invoices, _ = queries.get_invoices(user["uid"], page=1, per_page=1000)
+    all_mismatches = queries.get_mismatches(user["uid"])
 
     items = []
     for s in suppliers:
@@ -28,7 +26,7 @@ async def list_suppliers(_user=Depends(verify_jwt)):
         s_mismatches = [m for m in all_mismatches if m.get("supplier_name") == s.get("name")]
 
         health = compute_supplier_score(s_invoices, s_mismatches)
-        queries.upsert_supplier_health(DEMO_USER_ID, sid, health)
+        queries.upsert_supplier_health(user["uid"], sid, health)
 
         blocked_itc = sum(
             float(m.get("itc_at_risk") or m.get("amount_difference") or 0)
@@ -60,20 +58,20 @@ async def list_suppliers(_user=Depends(verify_jwt)):
 
 
 @router.post("/message", response_model=SupplierMessageResponse)
-async def send_supplier_message(request: SupplierMessageRequest, _user=Depends(verify_jwt)):
+async def send_supplier_message(request: SupplierMessageRequest, user=Depends(verify_jwt)):
     """Send a correction message to a supplier."""
     supplier = queries.get_supplier_by_id(request.supplier_id)
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
 
-    task = queries.insert_task(DEMO_USER_ID, {
+    task = queries.insert_task(user["uid"], {
         "task_type": "supplier_message",
         "supplier_name": supplier.get("name"),
         "supplier_id": request.supplier_id,
         "invoice_id": request.related_invoice_id,
     })
 
-    queries.insert_recommendation(DEMO_USER_ID, {
+    queries.insert_recommendation(user["uid"], {
         "supplier_id": request.supplier_id,
         "invoice_id": request.related_invoice_id,
         "recommendation_type": "correction_message",
