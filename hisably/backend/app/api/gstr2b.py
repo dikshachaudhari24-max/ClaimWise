@@ -13,6 +13,24 @@ from app.schemas.all_schemas import GSTR2BUploadResponse, MismatchListResponse
 router = APIRouter(prefix="/gstr2b", tags=["gstr2b"])
 
 
+def _embed_mismatch(mismatch: dict, user_id: str):
+    """Embed a mismatch record into Pinecone."""
+    try:
+        from ai.rag.embedder import embed_text
+        from ai.rag.pinecone_client import get_namespace, upsert_vector
+
+        text = (
+            f"Mismatch: {mismatch.get('mismatch_type')} for {mismatch.get('supplier_name')} "
+            f"amount difference ₹{mismatch.get('amount_difference')} "
+            f"root cause: {mismatch.get('root_cause_category')}"
+        )
+        vector = embed_text(text)
+        namespace = get_namespace(user_id, "mismatch")
+        upsert_vector(namespace, mismatch.get("id", str(uuid.uuid4())), vector, {"text": text, "record_type": "mismatch"})
+    except Exception:
+        pass
+
+
 @router.post("/upload", response_model=GSTR2BUploadResponse)
 async def upload_gstr2b(file: UploadFile = File(...), user=Depends(verify_jwt)):
     """Upload a GSTR-2B file for reconciliation."""
@@ -44,7 +62,9 @@ async def upload_gstr2b(file: UploadFile = File(...), user=Depends(verify_jwt)):
         m["explanation_hi"] = ""
 
     if mismatches:
-        queries.insert_mismatches_batch(user["uid"], mismatches)
+        inserted = queries.insert_mismatches_batch(user["uid"], mismatches)
+        for m in (inserted or mismatches):
+            _embed_mismatch(m, user["uid"])
 
     return GSTR2BUploadResponse(upload_id=upload_id, status="processed")
 
