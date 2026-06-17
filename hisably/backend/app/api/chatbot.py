@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.db import queries
@@ -14,29 +17,62 @@ async def text_query(request: ChatbotTextRequest, _user=Depends(verify_jwt)):
     """Process a text query through the RAG chatbot."""
     queries.insert_chat_message(DEMO_USER_ID, "user", request.query)
 
-    response_text = (
-        f"I received your question: '{request.query}'. "
-        "The RAG pipeline is not yet connected to an LLM provider. "
-        "Once Groq API keys are configured, I'll provide grounded answers "
-        "based on your invoice and compliance data."
-    )
+    try:
+        from ai.rag.retriever import retrieve_and_respond
+
+        result = retrieve_and_respond(DEMO_USER_ID, request.query, "invoices")
+        response_text = result["response"]
+        grounded = True
+    except Exception as e:
+        response_text = f"I received your question but encountered an error: {e}"
+        grounded = False
 
     queries.insert_chat_message(
         DEMO_USER_ID, "assistant", response_text,
-        namespaces=["invoices", "mismatches"], grounded=False,
+        namespaces=["invoices", "mismatches"], grounded=grounded,
     )
 
     return ChatbotTextResponse(
         response_text=response_text,
         retrieved_namespaces=["invoices", "mismatches"],
-        grounded=False,
+        grounded=grounded,
     )
 
 
 @router.post("/voice", response_model=ChatbotVoiceResponse)
 async def voice_query(file: UploadFile = File(...), _user=Depends(verify_jwt)):
     """Process a voice query through STT, RAG, and TTS."""
-    raise HTTPException(
-        status_code=501,
-        detail="Voice pipeline not yet connected — requires Groq STT and gTTS API keys",
-    )
+    from ai.voice.stt import transcribe
+    from ai.voice.tts import synthesize
+    from ai.rag.retriever import retrieve_and_respond
+
+    fd, temp_path = tempfile.mkstemp(suffix=os.path.splitext(file.filename or ".wav")[1])
+    try:
+        os.write(fd, await file.read())
+        os.close(fd)
+
+        stt_result = transcribe(temp_path)
+        if stt_result.get("error"):
+            raise HTTPException(status_code=400, detail=stt_result["error"])
+
+        user_text = stt_result["text"]
+        queries.insert_chat_message(DEMO_USER_ID, "user", user_text)
+
+        result = retrieve_and_respond(DEMO_USER_ID, user_text, "invoices")
+        response_text = result["response"]
+
+        audio_path = synthesize(response_text, lang=stt_result.get("language", "hi"))
+
+        queries.insert_chat_message(
+            DEMO_USER_ID, "assistant", response_text,
+            namespaces=["invoices", "mismatches"], grounded=True,
+        )
+
+        return ChatbotVoiceResponse(
+            transcribed_text=user_text,
+            response_text=response_text,
+            audio_url=audio_path,
+        )
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
