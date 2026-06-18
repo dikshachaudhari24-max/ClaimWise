@@ -7,13 +7,19 @@ import { Platform } from 'react-native';
 // Example: const LAN_IP = '192.168.1.42';
 // Leave as null to use emulator defaults (10.0.2.2 for Android emulator).
 // ============================================================================
-const LAN_IP = null;
+const LAN_IP = '192.168.29.169';
 
-const API_BASE = LAN_IP
-  ? `http://${LAN_IP}:8000`
-  : Platform.OS === 'android'
-    ? 'http://10.0.2.2:8000'
-    : 'http://localhost:8000';
+// Public ngrok tunnel — reachable from a physical phone with no firewall changes.
+// Set to null to fall back to LAN_IP / emulator defaults below.
+const NGROK_URL = 'https://washbasin-relenting-monologue.ngrok-free.dev';
+
+const API_BASE = NGROK_URL
+  ? NGROK_URL
+  : LAN_IP
+    ? `http://${LAN_IP}:8000`
+    : Platform.OS === 'android'
+      ? 'http://10.0.2.2:8000'
+      : 'http://localhost:8000';
 
 let authToken = null;
 
@@ -25,6 +31,7 @@ export const getAuthToken = () => authToken;
 
 const request = async (path, options = {}) => {
   const headers = {
+    'ngrok-skip-browser-warning': 'true',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...options.headers,
   };

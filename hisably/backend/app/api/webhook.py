@@ -77,8 +77,8 @@ def _handle_invoice_upload(user_id: str, file_path: str) -> str:
         if not inv:
             return "Invoice save karne mein error aa gaya. Dobara try karein."
 
-        from app.api.invoices import _process_invoice
-        _process_invoice(inv["id"], inv, user_id)
+        from app.api.invoices import _validate_and_score
+        _validate_and_score(inv["id"], inv, user_id)
 
         updated = queries.get_invoice_by_id(inv["id"])
         status = updated.get("status", "pending") if updated else "pending"
