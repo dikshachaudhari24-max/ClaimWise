@@ -87,5 +87,6 @@ export const api = {
   chatQuery: (query) =>
     request('/chatbot/query', { method: 'POST', body: JSON.stringify({ query }) }),
   getAnalytics: (month) => request(`/analytics/monthly${month ? `?month=${month}` : ''}`),
+  getInvoiceDetail: (invoiceId) => request(`/invoice/detail?invoice_id=${invoiceId}`),
   health: () => request('/health'),
 };
