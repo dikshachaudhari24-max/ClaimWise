@@ -1,10 +1,13 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     SUPABASE_URL: str = "https://your-project.supabase.co"
-    SUPABASE_KEY: str = "your-supabase-anon-key"
-    SUPABASE_SERVICE_KEY: str = "your-supabase-service-role-key"
+    SUPABASE_KEY: str = ""
+    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
     SUPABASE_JWT_SECRET: str = "your-supabase-jwt-secret"
     GROQ_API_KEY: str = "your-groq-api-key"
     GOOGLE_VISION_KEY: str = "path-to-google-credentials.json"
@@ -20,7 +23,15 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
     APP_ENV: str = "development"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    @model_validator(mode="after")
+    def resolve_key_aliases(self):
+        if not self.SUPABASE_KEY and self.SUPABASE_ANON_KEY:
+            self.SUPABASE_KEY = self.SUPABASE_ANON_KEY
+        if not self.SUPABASE_SERVICE_KEY and self.SUPABASE_SERVICE_ROLE_KEY:
+            self.SUPABASE_SERVICE_KEY = self.SUPABASE_SERVICE_ROLE_KEY
+        return self
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()
