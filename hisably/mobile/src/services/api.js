@@ -1,4 +1,4 @@
-const API_BASE = 'http://10.0.2.2:8000';
+const API_BASE = 'https://washbasin-relenting-monologue.ngrok-free.dev';
 
 let authToken = null;
 
