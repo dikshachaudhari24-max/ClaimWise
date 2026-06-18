@@ -60,6 +60,7 @@ export const DashboardScreen = ({ navigation }) => {
       heroHeight={236}
       leftIcon="notifications-outline"
       avatar={(firstName[0] || 'U').toUpperCase() + (firstName[1] || '').toUpperCase()}
+      onAvatarPress={() => navigation.navigate('Profile')}
       heroExtra={heroExtra}
     >
       {loading ? (

@@ -46,7 +46,7 @@ export const TasksScreen = () => {
   const filtered = activeFilter === 0 ? tasks : tasks.filter((x) => x.status === filterStatus[activeFilter]);
 
   return (
-    <Screen wordmark subtitle={t('tasks.title')} heroHeight={120} rightIcons={[{ name: 'notifications-outline', badge: pending || undefined }]}>
+    <Screen title={t('tasks.title')} subtitle={t('tasks.tagline')} heroHeight={150} leftIcon="notifications-outline" rightIcons={[{ name: 'ellipsis-vertical' }]}>
       {loading ? (
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       ) : (

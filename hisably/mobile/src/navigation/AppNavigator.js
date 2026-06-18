@@ -18,9 +18,11 @@ import {
   TasksScreen,
   VoiceScreen,
   SupplierScreen,
+  ProfileScreen,
 } from '../screens';
 
 const Stack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const HomeStack = () => (
@@ -42,6 +44,13 @@ const MainTabs = () => (
     <Tab.Screen name="Tasks" component={TasksScreen} />
     <Tab.Screen name="Voice" component={VoiceScreen} />
   </Tab.Navigator>
+);
+
+const MainStack = () => (
+  <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Screen name="Tabs" component={MainTabs} />
+    <RootStack.Screen name="Profile" component={ProfileScreen} />
+  </RootStack.Navigator>
 );
 
 const AuthStack = () => (
@@ -70,7 +79,7 @@ export const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {user ? <MainTabs /> : <AuthStack />}
+      {user ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };

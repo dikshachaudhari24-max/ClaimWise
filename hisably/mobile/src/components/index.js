@@ -12,5 +12,6 @@ export { LanguageChips } from './LanguageChips';
 export { GlobeButton } from './GlobeButton';
 export { LandingDocIllustration } from './LandingDocIllustration';
 export { RobotIllustration } from './RobotIllustration';
+export { ComplianceCalendar } from './ComplianceCalendar';
 export { FloatingTabBar } from './FloatingTabBar';
 export { DonutChart, TrendLine, MiniBars } from './charts';
