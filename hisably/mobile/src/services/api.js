@@ -1,4 +1,6 @@
-const API_BASE = 'http://10.0.2.2:8000';
+import { Platform } from 'react-native';
+
+const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
 
 let authToken = null;
 
@@ -6,12 +8,17 @@ export const setAuthToken = (token) => {
   authToken = token;
 };
 
+export const getAuthToken = () => authToken;
+
 const request = async (path, options = {}) => {
   const headers = {
-    'Content-Type': 'application/json',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...options.headers,
   };
+
+  if (!options.headers?.['Content-Type'] && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
@@ -22,27 +29,26 @@ const request = async (path, options = {}) => {
 };
 
 export const api = {
+  sendOtp: (phone) =>
+    request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ phone }) }),
+
+  verifyOtp: (phone, otp) =>
+    request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, otp }) }),
+
   getInvoices: (page = 1, perPage = 20) =>
     request(`/invoice/list?page=${page}&per_page=${perPage}`),
 
   uploadInvoice: async (fileUri, fileName) => {
     const form = new FormData();
-    form.append('file', { uri: fileUri, name: fileName, type: 'application/octet-stream' });
-    return request('/invoice/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'multipart/form-data' },
-      body: form,
-    });
+    const type = fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+    form.append('file', { uri: fileUri, name: fileName, type });
+    return request('/invoice/upload', { method: 'POST', body: form });
   },
 
   uploadGstr2b: async (fileUri, fileName) => {
     const form = new FormData();
     form.append('file', { uri: fileUri, name: fileName, type: 'text/csv' });
-    return request('/gstr2b/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'multipart/form-data' },
-      body: form,
-    });
+    return request('/gstr2b/upload', { method: 'POST', body: form });
   },
 
   getMismatches: () => request('/gstr2b/mismatches'),
@@ -68,4 +74,5 @@ export const api = {
   chatQuery: (query) =>
     request('/chatbot/query', { method: 'POST', body: JSON.stringify({ query }) }),
   getAnalytics: (month) => request(`/analytics/monthly${month ? `?month=${month}` : ''}`),
+  health: () => request('/health'),
 };

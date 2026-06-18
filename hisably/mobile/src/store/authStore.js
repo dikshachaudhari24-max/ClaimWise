@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { supabase } from '../services/supabase';
-import { setAuthToken } from '../services/api';
+import { api, setAuthToken } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TEST_OTP = '123456';
-const TEST_MODE = true;
+const AUTH_KEY = '@hisably_auth';
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -11,64 +10,44 @@ export const useAuthStore = create((set) => ({
   loading: true,
 
   initialize: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      setAuthToken(session.access_token);
-      set({ user: session.user, session, loading: false });
-    } else {
-      set({ loading: false });
-    }
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+    try {
+      const stored = await AsyncStorage.getItem(AUTH_KEY);
+      if (stored) {
+        const { user, session } = JSON.parse(stored);
         setAuthToken(session.access_token);
-        set({ user: session.user, session });
-      } else {
-        setAuthToken(null);
-        set({ user: null, session: null });
+        set({ user, session, loading: false });
+        return;
       }
-    });
+    } catch (_) {}
+    set({ loading: false });
   },
 
   sendOtp: async (phone) => {
-    if (TEST_MODE) return;
-    const { error } = await supabase.auth.signInWithOtp({ phone: `+91${phone}` });
-    if (error) throw error;
+    const res = await api.sendOtp(phone);
+    return res;
   },
 
   verifyOtp: async (phone, otp) => {
-    if (TEST_MODE) {
-      if (otp === TEST_OTP) {
-        setAuthToken('test-token');
-        set({
-          user: { id: '00000000-0000-0000-0000-000000000001', phone: `+91${phone}`, email: '' },
-          session: { access_token: 'test-token' },
-        });
-        return;
-      }
-      throw new Error('Wrong OTP. Test OTP: 123456');
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: `+91${phone}`,
-      token: otp,
-      type: 'sms',
-    });
-    if (error) throw error;
-    if (data.session) {
-      setAuthToken(data.session.access_token);
-      set({ user: data.user, session: data.session });
-    }
+    const res = await api.verifyOtp(phone, otp);
+    if (!res.success) throw new Error(res.message || 'Verification failed');
+    const user = { id: res.user_id, phone: `+91${phone}` };
+    const session = { access_token: res.token };
+    setAuthToken(res.token);
+    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify({ user, session }));
+    set({ user, session });
   },
 
-  loginDemo: () => {
+  loginDemo: async () => {
     setAuthToken('demo-token');
-    set({ user: { id: 'demo', email: 'demo@hisably.in' }, session: { access_token: 'demo-token' } });
+    const user = { id: 'demo', email: 'demo@hisably.in' };
+    const session = { access_token: 'demo-token' };
+    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify({ user, session }));
+    set({ user, session });
   },
 
   logout: async () => {
-    await supabase.auth.signOut();
     setAuthToken(null);
+    await AsyncStorage.removeItem(AUTH_KEY);
     set({ user: null, session: null });
   },
 }));
