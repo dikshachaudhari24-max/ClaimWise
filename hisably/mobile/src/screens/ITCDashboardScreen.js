@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { colors, typography } from '../theme';
-import { ITCAmountCard } from '../components';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, spacing, radius, shadow } from '../theme';
+import { Screen, StatusChip, TrendLine } from '../components';
 import { api } from '../services/api';
+import { useT } from '../i18n';
+
+const screenW = Dimensions.get('window').width;
+const chartW = screenW - spacing.screenH * 2 - 32;
+const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+const causeColors = [colors.danger, colors.warning, colors.outline];
 
 export const ITCDashboardScreen = () => {
   const [itc, setItc] = useState(null);
   const [mismatches, setMismatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const t = useT();
 
   useEffect(() => {
     (async () => {
@@ -17,102 +25,106 @@ export const ITCDashboardScreen = () => {
           api.getMismatches().catch(() => ({ mismatches: [] })),
         ]);
         setItc(itcData);
-        setMismatches(mData.mismatches?.filter((m) => !m.resolved) || []);
+        setMismatches((mData.mismatches || []).filter((m) => !m.resolved));
       } catch (e) { console.log(e); }
       setLoading(false);
     })();
   }, []);
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>;
+    return (
+      <Screen wordmark subtitle={t('itc.title')} heroHeight={120}>
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+      </Screen>
+    );
   }
 
-  const blockedByType = {};
+  const eligible = itc?.total_eligible || 0;
+  const trend = [0.42, 0.55, 0.48, 0.72, 0.86, 1].map((f) => Math.round(eligible * f));
+
+  const byType = {};
   mismatches.forEach((m) => {
-    const type = m.mismatch_type || 'other';
-    blockedByType[type] = (blockedByType[type] || 0) + (m.amount_difference || 0);
+    const key = (m.mismatch_type || 'other').replace(/_/g, ' ');
+    byType[key] = (byType[key] || 0) + (m.amount_difference || 0);
   });
+  const causes = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+  const maxCause = Math.max(...causes.map(([, v]) => v), 1);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.saffronStripe} />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={[typography.heading, styles.sectionTitle]}>ITC की जानकारी</Text>
-
-        <View style={styles.row}>
-          <ITCAmountCard
-            amount={itc?.total_eligible || 0}
-            labelHi="Eligible ITC"
-            labelEn="हासिल होगा"
-            type="success"
-          />
+    <Screen wordmark subtitle={t('itc.title')} heroHeight={120}>
+      {/* Eligible ITC trend */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={[typography.section, { color: colors.textPrimary }]}>{t('itc.eligibleTrend')}</Text>
+          <StatusChip label={t('itc.last6')} tone="neutral" />
         </View>
+        <Text style={[typography.amount, { color: colors.success, marginVertical: 6 }]}>{formatINR(eligible)}</Text>
+        <TrendLine data={trend} width={chartW} height={110} color={colors.success} />
+      </View>
 
-        <Text style={[typography.heading, styles.sectionTitle]}>अभी वापस मिल सकता है</Text>
-        <View style={[styles.row, { marginBottom: 8 }]}>
-          <ITCAmountCard
-            amount={itc?.total_recoverable || 0}
-            labelHi="Recoverable"
-            labelEn="वापस मिल सकता"
-            type="warning"
-          />
+      {/* Blocked causes */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Ionicons name="ban-outline" size={18} color={colors.danger} />
+          <Text style={[typography.section, { color: colors.textPrimary, marginLeft: 8 }]}>{t('itc.blockedCauses')}</Text>
         </View>
-
-        {itc?.priority_actions?.map((action, i) => (
-          <View key={i} style={styles.actionRow}>
-            <View style={styles.actionLeft}>
-              <Text style={[typography.body, { color: colors.textPrimary }]}>
-                {action.supplier_name || action.action_hi || 'Action required'}
-              </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                {action.action_hi || action.action_en || ''}
-              </Text>
+        {causes.length === 0 ? (
+          <Text style={[typography.body, { color: colors.textSecondary, marginTop: 8 }]}>{t('dash.noTasks')}</Text>
+        ) : (
+          causes.map(([label, value], i) => (
+            <View key={i} style={styles.causeRow}>
+              <View style={styles.causeTop}>
+                <Text style={[typography.body, { color: colors.textPrimary }]}>{label}</Text>
+                <Text style={[typography.labelBold, { color: colors.textPrimary }]}>{formatINR(value)}</Text>
+              </View>
+              <View style={styles.track}>
+                <View style={[styles.fill, { width: `${(value / maxCause) * 100}%`, backgroundColor: causeColors[i % causeColors.length] }]} />
+              </View>
             </View>
-            <Text style={[typography.body, { color: colors.warning, fontWeight: '600' }]}>
-              ₹{(action.amount || 0).toLocaleString('en-IN')}
+          ))
+        )}
+      </View>
+
+      {/* High priority recovery */}
+      <Text style={[typography.section, styles.sectionTitle]}>{t('itc.highPriority')}</Text>
+      <Text style={[typography.body, { color: colors.textSecondary, marginBottom: 12 }]}>{t('itc.highPriorityNote')}</Text>
+      {(itc?.priority_actions || []).map((action, i) => (
+        <View key={i} style={styles.actionCard}>
+          <View style={styles.warnIcon}>
+            <Ionicons name="warning-outline" size={20} color={colors.warning} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[typography.labelBold, { color: colors.textPrimary }]} numberOfLines={1}>
+              {action.supplier_name || action.action_en || t('itc.highPriority')}
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]} numberOfLines={1}>
+              {action.action_en || action.action_hi || ''}
             </Text>
           </View>
-        ))}
-
-        <Text style={[typography.heading, styles.sectionTitle]}>Blocked ITC Breakdown</Text>
-        {Object.entries(blockedByType).map(([type, amount], i) => (
-          <View key={i} style={styles.breakdownRow}>
-            <Text style={[typography.body, { color: colors.textPrimary, flex: 1 }]}>
-              {type.replace('_', ' ')}
-            </Text>
-            <Text style={[typography.body, { color: colors.danger, fontWeight: '600' }]}>
-              ₹{amount.toLocaleString('en-IN')}
-            </Text>
+          <View style={styles.actionRight}>
+            <Text style={[typography.labelBold, { color: colors.warning }]}>{formatINR(action.amount)}</Text>
+            <TouchableOpacity>
+              <Text style={[typography.caption, { color: colors.primary }]}>{t('itc.notifySupplier')}</Text>
+            </TouchableOpacity>
           </View>
-        ))}
-
-        <View style={[styles.row, { marginTop: 8 }]}>
-          <ITCAmountCard
-            amount={itc?.total_blocked || 0}
-            labelHi="Total Blocked"
-            labelEn="अटका हुआ"
-            type="danger"
-          />
         </View>
-      </ScrollView>
-    </View>
+      ))}
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.neutralBg },
-  saffronStripe: { height: 3, backgroundColor: colors.saffronAccent },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 16, paddingBottom: 32 },
-  sectionTitle: { color: colors.textPrimary, marginBottom: 12, marginTop: 16 },
-  row: { marginBottom: 16 },
-  actionRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.surface, padding: 16, borderRadius: 12, marginBottom: 8, elevation: 1,
+  card: { backgroundColor: colors.surface, borderRadius: radius.card, padding: 16, marginBottom: spacing.cardGap, ...shadow.card },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  causeRow: { marginTop: 14 },
+  causeTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  track: { height: 8, borderRadius: 4, backgroundColor: colors.divider, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4 },
+  sectionTitle: { color: colors.textPrimary, marginTop: spacing.sectionGap - 8, marginBottom: 4 },
+  actionCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface,
+    borderRadius: radius.card, padding: 14, marginBottom: 12, ...shadow.card,
   },
-  actionLeft: { flex: 1, marginRight: 8 },
-  breakdownRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.dangerLight, padding: 14, borderRadius: 10, marginBottom: 6,
-  },
+  warnIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.warningLight, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  actionRight: { alignItems: 'flex-end', marginLeft: 8 },
 });

@@ -46,7 +46,7 @@ export const useAuthStore = create((set) => ({
         });
         return;
       }
-      throw new Error('गलत OTP। Test OTP: 123456');
+      throw new Error('Wrong OTP. Test OTP: 123456');
     }
 
     const { data, error } = await supabase.auth.verifyOtp({
