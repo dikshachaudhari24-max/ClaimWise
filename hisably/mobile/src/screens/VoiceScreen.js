@@ -14,7 +14,7 @@ const Waveform = () => (
   </View>
 );
 
-export const VoiceScreen = () => {
+export const VoiceScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,7 @@ export const VoiceScreen = () => {
   const idle = history.length === 0;
 
   return (
-    <Screen wordmark={false} subtitle={t('nav.voice')} heroHeight={110} scroll={false} contentStyle={styles.sheetReset}>
+    <Screen title={t('voice.title')} heroHeight={118} leftIcon="notifications-outline" avatar="RK" onAvatarPress={() => navigation.navigate('Profile')} scroll={false} contentStyle={styles.sheetReset}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {idle && (

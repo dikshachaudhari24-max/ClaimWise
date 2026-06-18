@@ -7,7 +7,7 @@ import { useT } from '../i18n';
 
 const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
-export const SupplierScreen = () => {
+export const SupplierScreen = ({ navigation }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const t = useT();
@@ -24,7 +24,7 @@ export const SupplierScreen = () => {
 
   if (loading) {
     return (
-      <Screen wordmark subtitle={t('supplier.title')} heroHeight={120}>
+      <Screen title={t('supplier.title')} heroHeight={130} leftIcon="arrow-back" onLeftPress={() => navigation?.goBack?.()}>
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       </Screen>
     );
@@ -32,7 +32,7 @@ export const SupplierScreen = () => {
 
   if (suppliers.length === 0) {
     return (
-      <Screen wordmark subtitle={t('supplier.title')} heroHeight={120}>
+      <Screen title={t('supplier.title')} heroHeight={130} leftIcon="arrow-back" onLeftPress={() => navigation?.goBack?.()}>
         <EmptyState icon="storefront-outline" title={t('supplier.empty')} subtitle={t('supplier.emptySub')} />
       </Screen>
     );

@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, radius, shadow } from '../theme';
-import { PrimaryButton, LanguageChips, LandingDocIllustration } from '../components';
+import { colors, typography, spacing, radius } from '../theme';
+import { PrimaryButton, LanguageChips, RobotIllustration } from '../components';
 import { useAuthStore } from '../store/authStore';
 import { useT } from '../i18n';
 
@@ -12,87 +11,69 @@ export const LandingScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const t = useT();
 
-  const benefits = [
-    { icon: 'scan-outline', color: colors.success, titleKey: 'landing.benefit1.title', descKey: 'landing.benefit1.desc' },
-    { icon: 'sync-outline', color: colors.primary, titleKey: 'landing.benefit2.title', descKey: 'landing.benefit2.desc' },
-    { icon: 'shield-checkmark-outline', color: colors.warning, titleKey: 'landing.benefit3.title', descKey: 'landing.benefit3.desc' },
-  ];
-
   return (
     <View style={styles.root}>
-      <View style={[styles.hero, { paddingTop: insets.top }]}>
-        <LandingDocIllustration />
-        <View style={styles.heroCenter}>
-          <Text style={[typography.heroTitle, styles.wordmark]}>Hisably</Text>
-          <Text style={[typography.title, styles.tagline]}>{t('app.tagline')}</Text>
+      {/* Dark green hero — seamless surface, white-outline robot, no inner box */}
+      <View style={[styles.hero, { paddingTop: insets.top + 20 }]}>
+        <View style={styles.illoWrap}>
+          <RobotIllustration size={260} />
+        </View>
+        <View style={styles.dots}>
+          <View style={[styles.dot, styles.dotActive]} />
+          <View style={styles.dot} />
         </View>
       </View>
 
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <Text style={[typography.caption, styles.langLabel]}>{t('landing.selectLanguage')}</Text>
+      {/* Cream content area */}
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+        <Text style={[typography.heroTitle, styles.title]}>{t('landing.heroTitle')}</Text>
+        <Text style={[typography.bodyMd, styles.subtitle]}>{t('landing.heroSubtitle')}</Text>
+
+        <View style={styles.langRow}>
           <LanguageChips />
-
-          <View style={styles.benefits}>
-            {benefits.map((b, i) => (
-              <View key={i} style={[styles.benefitCard, { borderLeftColor: b.color }]}>
-                <View style={styles.benefitIcon}>
-                  <Ionicons name={b.icon} size={22} color={colors.primary} />
-                </View>
-                <View style={styles.benefitText}>
-                  <Text style={[typography.section, { color: colors.textPrimary }]}>{t(b.titleKey)}</Text>
-                  <Text style={[typography.body, { color: colors.textSecondary, marginTop: 2 }]}>{t(b.descKey)}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        <View style={[styles.cta, { paddingBottom: insets.bottom + 16 }]}>
-          <PrimaryButton title={t('common.getStarted')} icon="arrow-forward" onPress={() => navigation.navigate('Login')} />
-          <Text style={[typography.body, styles.link]} onPress={() => navigation.navigate('Login')}>
-            {t('landing.haveAccount')}
-          </Text>
-          <Text style={[typography.body, styles.demoLink]} onPress={loginDemo}>
-            {t('landing.demoMode')}
-          </Text>
         </View>
+
+        <PrimaryButton title={t('common.getStarted')} onPress={() => navigation.navigate('Login')} />
+
+        <Text style={styles.signInRow}>
+          <Text style={[typography.labelBold, { color: colors.textPrimary }]}>{t('landing.haveAccount')} </Text>
+          <Text style={[typography.labelBold, styles.signIn]} onPress={() => navigation.navigate('Login')}>
+            {t('landing.signIn')}
+          </Text>
+        </Text>
+
+        <Text style={[typography.caption, styles.demoLink]} onPress={loginDemo}>
+          {t('landing.demoMode')}
+        </Text>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.hero },
-  hero: { height: '42%', paddingHorizontal: spacing.screenH },
-  heroCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { color: colors.primary, fontSize: 40, lineHeight: 48 },
-  tagline: { color: colors.primary, opacity: 0.8, marginTop: 8 },
+  root: { flex: 1, backgroundColor: colors.primary },
+  hero: {
+    height: '50%',
+    paddingHorizontal: spacing.screenH,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: radius.sheet,
+    borderBottomRightRadius: radius.sheet,
+  },
+  illoWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  dots: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.4)', marginHorizontal: 4 },
+  dotActive: { width: 22, backgroundColor: '#fff' },
   sheet: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
-    marginTop: -28,
+    backgroundColor: colors.bg,
+    paddingHorizontal: spacing.screenH,
+    paddingTop: 28,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.outlineVariant, alignSelf: 'center', marginTop: 10 },
-  scroll: { paddingHorizontal: spacing.screenH, paddingTop: 20, paddingBottom: 12 },
-  langLabel: { color: colors.textSecondary, marginBottom: 10 },
-  benefits: { marginTop: spacing.sectionGap - 8 },
-  benefitCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    padding: 16,
-    marginBottom: spacing.cardGap,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderLeftWidth: 4,
-    ...shadow.card,
-  },
-  benefitIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.hero, alignItems: 'center', justifyContent: 'center', marginRight: spacing.iconTextGap },
-  benefitText: { flex: 1 },
-  cta: { paddingHorizontal: spacing.screenH, paddingTop: 12 },
-  link: { color: colors.primary, textAlign: 'center', marginTop: 14 },
-  demoLink: { color: colors.textSecondary, textAlign: 'center', marginTop: 12 },
+  title: { color: colors.primary, textAlign: 'center', fontSize: 34, lineHeight: 42 },
+  subtitle: { color: colors.textSecondary, textAlign: 'center', marginTop: 12, paddingHorizontal: 10 },
+  langRow: { marginTop: 26, marginBottom: 8, alignItems: 'center' },
+  signInRow: { textAlign: 'center', marginTop: 16 },
+  signIn: { color: colors.primary },
+  demoLink: { color: colors.textSecondary, textAlign: 'center', marginTop: 14 },
 });

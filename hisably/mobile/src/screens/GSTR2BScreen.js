@@ -44,7 +44,7 @@ export const GSTR2BScreen = () => {
 
   if (loading) {
     return (
-      <Screen wordmark subtitle={t('gstr.title')} heroHeight={120}>
+      <Screen title={t('gstr.title')} titleAlign="left" heroHeight={130} rightIcons={[{ name: 'notifications-outline' }]}>
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       </Screen>
     );
@@ -52,7 +52,7 @@ export const GSTR2BScreen = () => {
 
   if (mismatches.length === 0) {
     return (
-      <Screen wordmark subtitle={t('gstr.title')} heroHeight={120}>
+      <Screen title={t('gstr.title')} titleAlign="left" heroHeight={130} rightIcons={[{ name: 'notifications-outline' }]}>
         <EmptyState icon="bar-chart-outline" title={t('gstr.uploadPrompt')} />
         <PrimaryButton title={t('gstr.uploadFile')} icon="cloud-upload-outline" onPress={handleUpload} loading={uploading} />
       </Screen>

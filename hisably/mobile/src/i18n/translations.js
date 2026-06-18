@@ -15,6 +15,21 @@ export const translations = {
   },
 
   // ---- Landing ----
+  'landing.heroTitle': {
+    en: "Hello, it's Hisably!", hi: 'नमस्ते, यह Hisably है!', mr: 'नमस्कार, हे Hisably आहे!',
+    ta: 'வணக்கம், இது Hisably!', te: 'హలో, ఇది Hisably!', gu: 'નમસ્તે, આ Hisably છે!',
+  },
+  'landing.heroSubtitle': {
+    en: 'Your AI-powered GST assistant. Here are a few steps to get you started.',
+    hi: 'आपका AI-powered GST सहायक। शुरू करने के लिए कुछ आसान steps।',
+    mr: 'तुमचा AI-powered GST सहाय्यक. सुरू करण्यासाठी काही पायऱ्या.',
+    ta: 'உங்கள் AI GST உதவியாளர். தொடங்க சில படிகள்.',
+    te: 'మీ AI GST సహాయకుడు. ప్రారంభించడానికి కొన్ని దశలు.',
+    gu: 'તમારો AI GST સહાયક. શરૂ કરવા માટે થોડા પગલાં.',
+  },
+  'landing.signIn': {
+    en: 'Sign In', hi: 'Sign In', mr: 'साइन इन', ta: 'உள்நுழைக', te: 'సైన్ ఇన్', gu: 'સાઇન ઇન',
+  },
   'landing.selectLanguage': {
     en: 'Select Language', hi: 'भाषा चुनें', mr: 'भाषा निवडा',
     ta: 'மொழியைத் தேர்ந்தெடுக்கவும்', te: 'భాషను ఎంచుకోండి', gu: 'ભાષા પસંદ કરો',
@@ -48,12 +63,12 @@ export const translations = {
     hi: 'Mismatch और filing deadline के लिए real-time alerts।',
   },
   'landing.haveAccount': {
-    en: 'Already have an account? Sign In',
-    hi: 'पहले से account है? Login करें',
-    mr: 'आधीच खाते आहे? साइन इन करा',
-    ta: 'ஏற்கனவே கணக்கு உள்ளதா? உள்நுழைக',
-    te: 'ఇప్పటికే ఖాతా ఉందా? సైన్ ఇన్ చేయండి',
-    gu: 'પહેલેથી એકાઉન્ટ છે? સાઇન ઇન કરો',
+    en: 'Already have an account?',
+    hi: 'पहले से account है?',
+    mr: 'आधीच खाते आहे?',
+    ta: 'ஏற்கனவே கணக்கு உள்ளதா?',
+    te: 'ఇప్పటికే ఖాతా ఉందా?',
+    gu: 'પહેલેથી એકાઉન્ટ છે?',
   },
   'landing.demoMode': {
     en: 'Explore Demo Mode', hi: 'Demo Mode देखें', mr: 'डेमो मोड पहा',
@@ -85,11 +100,22 @@ export const translations = {
   'nav.voice': { en: 'Voice', hi: 'आवाज़', mr: 'व्हॉइस', ta: 'குரல்', te: 'వాయిస్', gu: 'વોઇસ' },
 
   // ---- Login ----
-  'login.welcome': { en: 'Welcome', hi: 'स्वागत है', mr: 'स्वागत आहे', ta: 'வரவேற்பு', te: 'స్వాగతం', gu: 'સ્વાગત છે' },
+  'login.tagline': {
+    en: 'Manage your business easily.', hi: 'अपना व्यापार आसानी से संभालें।',
+    mr: 'तुमचा व्यवसाय सहज सांभाळा.', ta: 'உங்கள் வணிகத்தை எளிதாக நிர்வகியுங்கள்.',
+    te: 'మీ వ్యాపారాన్ని సులభంగా నిర్వహించండి.', gu: 'તમારો વ્યવસાય સરળતાથી સંભાળો.',
+  },
+  'login.welcome': { en: 'Welcome Back', hi: 'फिर से स्वागत है', mr: 'पुन्हा स्वागत आहे', ta: 'மீண்டும் வரவேற்பு', te: 'తిరిగి స్వాగతం', gu: 'ફરી સ્વાગત છે' },
   'login.subtitle': {
-    en: 'Log in to your AI Assistant', hi: 'अपने AI Assistant में login करें',
-    mr: 'तुमच्या AI सहाय्यकात लॉग इन करा', ta: 'உங்கள் AI உதவியாளரில் உள்நுழையவும்',
-    te: 'మీ AI అసిస్టెంట్‌లో లాగిన్ అవ్వండి', gu: 'તમારા AI સહાયકમાં લોગિન કરો',
+    en: 'Enter your mobile number to securely log in or create an account.',
+    hi: 'सुरक्षित login या नया account बनाने के लिए अपना मोबाइल नंबर डालें।',
+    mr: 'सुरक्षित लॉगिनसाठी तुमचा मोबाइल नंबर टाका.', ta: 'பாதுகாப்பாக உள்நுழைய மொபைல் எண்ணை உள்ளிடவும்.',
+    te: 'సురక్షితంగా లాగిన్ అవ్వడానికి మీ మొబైల్ నంబర్ నమోదు చేయండి.', gu: 'સુરક્ષિત લોગિન માટે મોબાઇલ નંબર દાખલ કરો.',
+  },
+  'login.fullName': { en: 'Full Name', hi: 'पूरा नाम', mr: 'पूर्ण नाव', ta: 'முழு பெயர்', te: 'పూర్తి పేరు', gu: 'પૂરું નામ' },
+  'login.fullNamePlaceholder': {
+    en: 'Enter your full name', hi: 'अपना पूरा नाम डालें', mr: 'तुमचे पूर्ण नाव टाका',
+    ta: 'உங்கள் முழு பெயரை உள்ளிடவும்', te: 'మీ పూర్తి పేరును నమోదు చేయండి', gu: 'તમારું પૂરું નામ દાખલ કરો',
   },
   'login.mobileNumber': {
     en: 'Mobile Number', hi: 'मोबाइल नंबर', mr: 'मोबाइल नंबर',
@@ -109,6 +135,8 @@ export const translations = {
 
   // ---- Dashboard ----
   'dash.greeting': { en: 'Hello, {name}', hi: 'नमस्ते, {name}' },
+  'dash.itcStatus': { en: 'Your ITC status for {month}', hi: '{month} के लिए आपका ITC status' },
+  'dash.readyToClaim': { en: 'Ready to claim', hi: 'claim के लिए तैयार' },
   'dash.itcSummary': { en: 'ITC Summary', hi: 'ITC सारांश' },
   'dash.openTasks': { en: 'Open Tasks', hi: 'खुले काम' },
   'dash.noTasks': { en: 'No pending tasks', hi: 'कोई pending काम नहीं' },
@@ -142,6 +170,16 @@ export const translations = {
   'upload.uploaded': { en: 'Invoice uploaded', hi: 'Invoice upload हो गया' },
   'upload.error': { en: 'Something went wrong uploading. Please try again.', hi: 'Invoice upload में गड़बड़ हुई। दोबारा try करें।' },
   'upload.cameraPerm': { en: 'Camera permission required', hi: 'Camera की अनुमति चाहिए' },
+  'upload.unreadable': { en: 'Document unreadable?', hi: 'Document पढ़ा नहीं जा रहा?' },
+  'upload.manualSoon': { en: 'Manual entry form coming soon.', hi: 'खुद भरने का form जल्द आ रहा है।' },
+
+  // ---- Data Verification ----
+  'verify.extracted': { en: 'Invoice Extracted', hi: 'Invoice निकाला गया' },
+  'verify.details': { en: 'Invoice Details', hi: 'Invoice जानकारी' },
+  'verify.amounts': { en: 'Amount Breakdown', hi: 'रकम का विवरण' },
+  'verify.total': { en: 'Total Amount', hi: 'कुल रकम' },
+  'verify.uploadAnother': { en: 'Upload Another Invoice', hi: 'दूसरा Invoice जोड़ें' },
+  'verify.saveAndContinue': { en: 'Save & Continue', hi: 'सेव करें और आगे बढ़ें' },
 
   // ---- Status ----
   'status.processing': { en: 'Processing', hi: 'Processing' },
@@ -175,7 +213,8 @@ export const translations = {
   'filter.high': { en: 'High Priority', hi: 'जरूरी' },
 
   // ---- Tasks ----
-  'tasks.title': { en: 'My Tasks', hi: 'मेरे काम' },
+  'tasks.title': { en: 'Task Manager', hi: 'काम प्रबंधक' },
+  'tasks.tagline': { en: 'Keep your GST compliance on track.', hi: 'अपनी GST compliance सही रखें।' },
   'tasks.allTasks': { en: 'All Tasks', hi: 'सभी काम' },
   'tasks.summary': { en: 'Task Summary', hi: 'काम का सारांश' },
   'tasks.completionRate': { en: 'Completion Rate', hi: 'पूर्णता दर' },
@@ -186,6 +225,7 @@ export const translations = {
   'tasks.itcAffected': { en: '{amount} ITC affected', hi: '{amount} ITC प्रभावित' },
 
   // ---- Voice ----
+  'voice.title': { en: 'Voice Assistant', hi: 'आवाज़ सहायक', mr: 'व्हॉइस सहाय्यक', ta: 'குரல் உதவியாளர்', te: 'వాయిస్ అసిస్టెంట్', gu: 'વોઇસ સહાયક' },
   'voice.listening': { en: 'Listening...', hi: 'सुन रहा हूँ...' },
   'voice.assistant': { en: 'Assistant', hi: 'सहायक' },
   'voice.greeting': { en: 'Hello{name}. How can I assist you with your compliance today?', hi: 'नमस्ते{name}। आज आपकी GST compliance में कैसे मदद करूँ?' },
@@ -208,6 +248,21 @@ export const translations = {
   'supplier.reliable': { en: 'Reliable', hi: 'विश्वसनीय' },
   'supplier.caution': { en: 'Caution', hi: 'सावधान' },
   'supplier.problematic': { en: 'Problematic', hi: 'समस्या' },
+
+  // ---- Profile ----
+  'profile.title': { en: 'Profile', hi: 'प्रोफ़ाइल' },
+  'profile.totalInvoices': { en: 'Total Invoices', hi: 'कुल Invoice' },
+  'profile.itcClaimed': { en: 'ITC Claimed', hi: 'ITC लिया गया' },
+  'profile.pendingTasks': { en: 'Pending Tasks', hi: 'बाकी काम' },
+  'profile.actionsRequired': { en: '{n} Actions Required', hi: '{n} काम बाकी' },
+  'profile.complianceCalendar': { en: 'GST Compliance Calendar', hi: 'GST अनुपालन कैलेंडर' },
+  'profile.gstr1Due': { en: 'GSTR-1 Due Soon', hi: 'GSTR-1 जल्द देय' },
+  'profile.gstr1DueNote': { en: 'Last date to file GSTR-1 is 11th. File early to avoid penalties.', hi: 'GSTR-1 भरने की आखिरी तारीख 11 है। Penalty से बचने के लिए जल्दी भरें।' },
+  'profile.accountSettings': { en: 'Account Settings', hi: 'खाता सेटिंग्स' },
+  'profile.notifications': { en: 'Notifications', hi: 'सूचनाएँ' },
+  'profile.security': { en: 'Security', hi: 'सुरक्षा' },
+  'profile.help': { en: 'Help & Support', hi: 'मदद और सहायता' },
+  'profile.logout': { en: 'Logout', hi: 'लॉग आउट' },
 
   // ---- Risk tiers ----
   'risk.low': { en: 'Low Risk', hi: 'कम जोखिम' },

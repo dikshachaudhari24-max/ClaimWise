@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  focused: { borderColor: colors.primary, backgroundColor: '#EEF1FF' },
+  focused: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   leftIcon: { marginRight: 10 },
   prefix: {
     marginRight: 10,

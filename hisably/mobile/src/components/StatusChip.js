@@ -7,22 +7,23 @@ const tones = {
   warning: { bg: colors.warningLight, text: colors.warning },
   danger: { bg: colors.dangerLight, text: colors.danger },
   info: { bg: colors.primaryLight, text: colors.primary },
-  neutral: { bg: '#ECECEC', text: colors.textSecondary },
+  neutral: { bg: colors.neutralBg, text: colors.textSecondary },
 };
 
-export const StatusChip = ({ label, tone = 'neutral', style }) => {
+export const StatusChip = ({ label, tone = 'neutral', style, mono = true, uppercase = false }) => {
   const t = tones[tone] || tones.neutral;
+  const text = uppercase ? String(label).toUpperCase() : label;
   return (
     <View style={[styles.chip, { backgroundColor: t.bg }, style]}>
-      <Text style={[typography.caption, { color: t.text }]}>{label}</Text>
+      <Text style={[mono ? typography.monoCaption : typography.caption, { color: t.text }]}>{text}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: radius.pill,
     alignSelf: 'flex-start',
   },

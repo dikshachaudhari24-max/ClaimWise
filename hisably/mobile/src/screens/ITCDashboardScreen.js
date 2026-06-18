@@ -11,7 +11,7 @@ const chartW = screenW - spacing.screenH * 2 - 32;
 const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const causeColors = [colors.danger, colors.warning, colors.outline];
 
-export const ITCDashboardScreen = () => {
+export const ITCDashboardScreen = ({ navigation }) => {
   const [itc, setItc] = useState(null);
   const [mismatches, setMismatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ export const ITCDashboardScreen = () => {
 
   if (loading) {
     return (
-      <Screen wordmark subtitle={t('itc.title')} heroHeight={120}>
+      <Screen title={t('itc.title')} heroHeight={130} leftIcon="arrow-back" onLeftPress={() => navigation?.goBack?.()} rightIcons={[{ name: 'options-outline' }]}>
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       </Screen>
     );

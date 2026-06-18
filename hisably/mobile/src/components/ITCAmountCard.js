@@ -15,19 +15,20 @@ const typeStyles = {
 
 const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
-export const ITCAmountCard = ({ amount, label, type = 'eligible', onPress }) => {
+export const ITCAmountCard = ({ amount, label, sublabel, type = 'eligible', onPress, style }) => {
   const s = typeStyles[type] || typeStyles.eligible;
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: s.bg, borderLeftColor: s.color }]}
+      style={[styles.card, { backgroundColor: s.bg }, style]}
       onPress={onPress}
       activeOpacity={onPress ? 0.85 : 1}
     >
-      <View style={styles.iconWrap}>
-        <Ionicons name={s.icon} size={22} color={s.color} />
+      <View style={styles.headRow}>
+        <Ionicons name={s.icon} size={18} color={s.color} />
+        <Text style={[typography.labelBold, styles.label, { color: s.color }]} numberOfLines={1}>{label}</Text>
       </View>
-      <Text style={[typography.labelBold, styles.label, { color: s.color }]}>{label}</Text>
       <Text style={[typography.amount, { color: s.color }]}>{formatINR(amount)}</Text>
+      {sublabel ? <Text style={[typography.caption, { color: s.color, opacity: 0.8, marginTop: 4 }]}>{sublabel}</Text> : null}
     </TouchableOpacity>
   );
 };
@@ -36,9 +37,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
     padding: 16,
-    borderLeftWidth: 4,
     ...shadow.card,
   },
-  iconWrap: { marginBottom: 8 },
-  label: { marginBottom: 4 },
+  headRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  label: { marginLeft: 8 },
 });
