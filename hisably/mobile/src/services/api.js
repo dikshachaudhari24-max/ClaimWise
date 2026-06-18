@@ -1,6 +1,19 @@
 import { Platform } from 'react-native';
 
-const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+// ============================================================================
+// IMPORTANT: To run on a PHYSICAL PHONE, set this to your computer's local IP.
+// Find it with `ifconfig` (Mac/Linux) or `ipconfig` (Windows) — looks like
+// 192.168.x.x. Your phone and computer must be on the same WiFi network.
+// Example: const LAN_IP = '192.168.1.42';
+// Leave as null to use emulator defaults (10.0.2.2 for Android emulator).
+// ============================================================================
+const LAN_IP = null;
+
+const API_BASE = LAN_IP
+  ? `http://${LAN_IP}:8000`
+  : Platform.OS === 'android'
+    ? 'http://10.0.2.2:8000'
+    : 'http://localhost:8000';
 
 let authToken = null;
 
