@@ -1,16 +1,31 @@
 import random
-import time
+from datetime import datetime, timedelta, timezone
 
+import jwt
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.config import settings
+from app.db import queries
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-_otp_store: dict[str, dict] = {}
 
-OTP_EXPIRY_SECONDS = 300
+def _generate_otp() -> str:
+    return str(random.randint(100000, 999999))
+
+
+def _create_jwt(user_id: str, phone: str) -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": user_id,
+        "phone": phone,
+        "aud": "authenticated",
+        "role": "authenticated",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(days=30)).timestamp()),
+    }
+    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
 
 class SendOtpRequest(BaseModel):
@@ -22,77 +37,60 @@ class VerifyOtpRequest(BaseModel):
     otp: str
 
 
-class AuthResponse(BaseModel):
-    success: bool
-    token: str | None = None
-    user_id: str | None = None
-    message: str = ""
-
-
-@router.post("/send-otp", response_model=AuthResponse)
+@router.post("/send-otp")
 async def send_otp(req: SendOtpRequest):
-    phone = req.phone.strip().replace(" ", "")
+    phone = req.phone.strip()
     if not phone.startswith("+"):
         phone = f"+91{phone}"
 
-    otp = f"{random.randint(100000, 999999)}"
-    _otp_store[phone] = {"otp": otp, "ts": time.time()}
+    otp = _generate_otp()
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()
 
-    if settings.APP_ENV == "development":
-        return AuthResponse(success=True, message=f"Dev OTP: {otp}")
+    queries.store_otp(phone, otp, expires_at)
 
-    try:
-        from twilio.rest import Client
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        client.messages.create(
-            body=f"Your Hisably verification code is: {otp}",
-            from_=settings.TWILIO_WHATSAPP_FROM,
-            to=f"whatsapp:{phone}",
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {e}")
+    from app.api.webhook import _send_whatsapp
+    message = f"🔐 Aapka Hisably OTP: *{otp}*\n\nYeh 5 minute mein expire ho jayega.\nKisi ke saath share na karein."
+    sent = _send_whatsapp(phone, message)
 
-    return AuthResponse(success=True, message="OTP sent to WhatsApp")
+    if not sent:
+        raise HTTPException(status_code=500, detail="OTP send failed. Check your WhatsApp number.")
+
+    return {"message": "OTP sent to WhatsApp", "phone": phone}
 
 
-@router.post("/verify-otp", response_model=AuthResponse)
+@router.post("/verify-otp")
 async def verify_otp(req: VerifyOtpRequest):
-    phone = req.phone.strip().replace(" ", "")
+    phone = req.phone.strip()
     if not phone.startswith("+"):
         phone = f"+91{phone}"
 
-    stored = _otp_store.get(phone)
+    stored = queries.get_latest_otp(phone)
     if not stored:
-        raise HTTPException(status_code=400, detail="No OTP sent for this number. Request OTP first.")
+        raise HTTPException(status_code=400, detail="No OTP found. Request a new one.")
 
-    if time.time() - stored["ts"] > OTP_EXPIRY_SECONDS:
-        _otp_store.pop(phone, None)
+    expires_at = datetime.fromisoformat(stored["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expires_at:
         raise HTTPException(status_code=400, detail="OTP expired. Request a new one.")
 
-    if stored["otp"] != req.otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+    if stored["otp"] != req.otp.strip():
+        raise HTTPException(status_code=400, detail="Wrong OTP. Try again.")
 
-    _otp_store.pop(phone, None)
+    queries.mark_otp_verified(stored["id"])
 
-    import hashlib
-    user_id = hashlib.sha256(phone.encode()).hexdigest()[:36]
-    token = f"dev-{user_id}" if settings.APP_ENV == "development" else _generate_jwt(phone, user_id)
+    user = queries.get_user_by_phone(phone)
+    if not user:
+        user = queries.create_user(phone)
+    elif not user.get("is_verified"):
+        queries.verify_user(user["id"])
 
-    if settings.APP_ENV == "development":
-        from app.deps import DEV_TOKENS
-        DEV_TOKENS[token] = {"uid": user_id, "email": "", "role": "authenticated"}
+    token = _create_jwt(user["id"], phone)
 
-    return AuthResponse(success=True, token=token, user_id=user_id, message="Verified")
+    from app.api.webhook import _send_whatsapp
+    _send_whatsapp(phone, "✅ Aapka number verify ho gaya!\n\nAb aap Hisably app aur WhatsApp dono se GST queries kar sakte hain. 🙏")
 
-
-def _generate_jwt(phone: str, user_id: str) -> str:
-    import jwt as pyjwt
-    payload = {
-        "sub": user_id,
+    return {
+        "message": "Verified successfully",
+        "user_id": user["id"],
         "phone": phone,
-        "role": "authenticated",
-        "aud": "authenticated",
-        "iat": int(time.time()),
-        "exp": int(time.time()) + 86400 * 7,
+        "token": token,
     }
-    return pyjwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
