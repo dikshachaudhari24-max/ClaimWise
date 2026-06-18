@@ -13,6 +13,7 @@ import {
   LoginScreen,
   DashboardScreen,
   InvoiceUploadScreen,
+  InvoiceDetailScreen,
   GSTR2BScreen,
   ITCDashboardScreen,
   TasksScreen,
@@ -49,6 +50,7 @@ const MainTabs = () => (
 const MainStack = () => (
   <RootStack.Navigator screenOptions={{ headerShown: false }}>
     <RootStack.Screen name="Tabs" component={MainTabs} />
+    <RootStack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
     <RootStack.Screen name="Profile" component={ProfileScreen} />
   </RootStack.Navigator>
 );

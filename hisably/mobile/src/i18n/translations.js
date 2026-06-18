@@ -179,6 +179,7 @@ export const translations = {
   'verify.amounts': { en: 'Amount Breakdown', hi: 'रकम का विवरण' },
   'verify.total': { en: 'Total Amount', hi: 'कुल रकम' },
   'verify.uploadAnother': { en: 'Upload Another Invoice', hi: 'दूसरा Invoice जोड़ें' },
+  'verify.saveAndContinue': { en: 'Save & Continue', hi: 'सेव करें और आगे बढ़ें' },
 
   // ---- Status ----
   'status.processing': { en: 'Processing', hi: 'Processing' },

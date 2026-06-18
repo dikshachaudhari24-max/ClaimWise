@@ -17,17 +17,9 @@ const statusTone = (s) => {
   return { tone: 'danger', key: null };
 };
 
-const FieldRow = ({ label, value }) => (
-  <View style={styles.fieldRow}>
-    <Text style={[typography.monoCaption, { color: colors.textSecondary, width: 118 }]}>{label}</Text>
-    <Text style={[typography.body, { color: colors.textPrimary, flex: 1 }]} numberOfLines={2}>{value || '—'}</Text>
-  </View>
-);
-
 export const InvoiceUploadScreen = ({ navigation }) => {
   const [processing, setProcessing] = useState(false);
   const [recent, setRecent] = useState([]);
-  const [extractedData, setExtractedData] = useState(null);
   const { user } = useAuthStore();
   const t = useT();
   const initials = ((user?.name?.[0] || user?.email?.[0] || 'U') + (user?.name?.[1] || '')).toUpperCase();
@@ -74,7 +66,9 @@ export const InvoiceUploadScreen = ({ navigation }) => {
 
       if (res.error) return Alert.alert(t('common.error'), res.error);
       if (res.extracted) {
-        setExtractedData({ ...res.extracted, status: res.status, invoice_id: res.invoice_id });
+        navigation.navigate('InvoiceDetail', {
+          data: { ...res.extracted, status: res.status, invoice_id: res.invoice_id },
+        });
       } else {
         Alert.alert(t('upload.uploaded'), `Status: ${res.status}`);
       }
@@ -87,93 +81,52 @@ export const InvoiceUploadScreen = ({ navigation }) => {
 
   return (
     <Screen title={t('upload.title')} heroHeight={150} avatar={initials} onAvatarPress={() => navigation.navigate('Profile')}>
-      {!extractedData ? (
+      {tiles.map((tile, i) => (
+        <TouchableOpacity key={i} style={styles.tile} onPress={() => handleUpload(tile.type)} activeOpacity={0.85}>
+          <View style={[styles.tileIcon, { backgroundColor: tile.bg }]}>
+            <Ionicons name={tile.icon} size={28} color={tile.fg} />
+          </View>
+          <Text style={[typography.title, styles.tileLabel]}>{t(tile.labelKey)}</Text>
+        </TouchableOpacity>
+      ))}
+
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={[typography.monoLabel, styles.dividerText]}>{t('upload.unreadable')}</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <TouchableOpacity style={styles.manualBtn} activeOpacity={0.85} onPress={() => Alert.alert(t('upload.manual'), t('upload.manualSoon'))}>
+        <Ionicons name="create-outline" size={20} color={colors.primary} />
+        <Text style={[typography.labelBold, { color: colors.primary, marginLeft: 10, fontSize: 16 }]}>{t('upload.manual')}</Text>
+      </TouchableOpacity>
+
+      {recent.length > 0 && (
         <>
-          {tiles.map((tile, i) => (
-            <TouchableOpacity key={i} style={styles.tile} onPress={() => handleUpload(tile.type)} activeOpacity={0.85}>
-              <View style={[styles.tileIcon, { backgroundColor: tile.bg }]}>
-                <Ionicons name={tile.icon} size={28} color={tile.fg} />
+          <Text style={[typography.section, styles.sectionTitle]}>{t('upload.recent')}</Text>
+          {recent.map((inv, i) => {
+            const st = statusTone(inv.status);
+            return (
+              <View key={i} style={styles.recentRow}>
+                <View style={styles.recentIcon}>
+                  <Ionicons name="document-text-outline" size={20} color={colors.outline} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.labelBold, { color: colors.textPrimary }]} numberOfLines={1}>
+                    {inv.invoice_number || 'Invoice'}
+                  </Text>
+                  <Text style={[typography.monoCaption, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {inv.supplier_name || inv.date || ''}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  {inv.amount > 0 && <Text style={[typography.labelBold, { color: colors.textPrimary, marginBottom: 2 }]}>{formatINR(inv.amount)}</Text>}
+                  <StatusChip label={st.key ? t(st.key) : (inv.status || '').replace(/_/g, ' ')} tone={st.tone} />
+                </View>
               </View>
-              <Text style={[typography.title, styles.tileLabel]}>{t(tile.labelKey)}</Text>
-            </TouchableOpacity>
-          ))}
-
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={[typography.monoLabel, styles.dividerText]}>{t('upload.unreadable')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity style={styles.manualBtn} activeOpacity={0.85} onPress={() => Alert.alert(t('upload.manual'), t('upload.manualSoon'))}>
-            <Ionicons name="create-outline" size={20} color={colors.primary} />
-            <Text style={[typography.labelBold, { color: colors.primary, marginLeft: 10, fontSize: 16 }]}>{t('upload.manual')}</Text>
-          </TouchableOpacity>
-
-          {recent.length > 0 && (
-            <>
-              <Text style={[typography.section, styles.sectionTitle]}>{t('upload.recent')}</Text>
-              {recent.map((inv, i) => {
-                const st = statusTone(inv.status);
-                return (
-                  <View key={i} style={styles.recentRow}>
-                    <View style={styles.recentIcon}>
-                      <Ionicons name="document-text-outline" size={20} color={colors.outline} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[typography.labelBold, { color: colors.textPrimary }]} numberOfLines={1}>
-                        {inv.invoice_number || 'Invoice'}
-                      </Text>
-                      <Text style={[typography.monoCaption, { color: colors.textSecondary }]} numberOfLines={1}>
-                        {inv.supplier_name || inv.date || ''}
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      {inv.amount > 0 && <Text style={[typography.labelBold, { color: colors.textPrimary, marginBottom: 2 }]}>{formatINR(inv.amount)}</Text>}
-                      <StatusChip label={st.key ? t(st.key) : (inv.status || '').replace(/_/g, ' ')} tone={st.tone} />
-                    </View>
-                  </View>
-                );
-              })}
-            </>
-          )}
+            );
+          })}
         </>
-      ) : (
-        <View>
-          <View style={styles.resultHeader}>
-            <Ionicons name="checkmark-circle" size={28} color={colors.success} />
-            <Text style={[typography.title, { color: colors.success, marginLeft: 10 }]}>{t('verify.extracted')}</Text>
-          </View>
-
-          <StatusChip label={(extractedData.status || 'processing').replace(/_/g, ' ')} tone={statusTone(extractedData.status).tone} uppercase />
-
-          <View style={styles.resultCard}>
-            <Text style={[typography.section, { color: colors.textPrimary, marginBottom: 12 }]}>{t('verify.details')}</Text>
-            <FieldRow label="Vendor Name" value={extractedData.supplier_name} />
-            <FieldRow label="GSTIN" value={extractedData.supplier_gstin} />
-            <FieldRow label="Invoice No." value={extractedData.invoice_number} />
-            <FieldRow label="Date" value={extractedData.date} />
-            <FieldRow label="HSN Code" value={extractedData.hsn_code} />
-            <FieldRow label="Description" value={extractedData.product_description} />
-          </View>
-
-          <View style={styles.resultCard}>
-            <Text style={[typography.section, { color: colors.textPrimary, marginBottom: 12 }]}>{t('verify.amounts')}</Text>
-            <FieldRow label="Taxable Value" value={formatINR(extractedData.taxable_value)} />
-            <FieldRow label="CGST" value={formatINR(extractedData.cgst_amount)} />
-            <FieldRow label="SGST" value={formatINR(extractedData.sgst_amount)} />
-            <FieldRow label="IGST" value={formatINR(extractedData.igst_amount)} />
-            <FieldRow label="Total GST" value={formatINR(extractedData.gst_amount)} />
-            <View style={styles.totalRow}>
-              <Text style={[typography.labelBold, { color: colors.textPrimary }]}>{t('verify.total')}</Text>
-              <Text style={[typography.amount, { color: colors.primary }]}>{formatINR(extractedData.total_amount)}</Text>
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.uploadAnother} onPress={() => setExtractedData(null)}>
-            <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-            <Text style={[typography.labelBold, { color: colors.primary, marginLeft: 8 }]}>{t('verify.uploadAnother')}</Text>
-          </TouchableOpacity>
-        </View>
       )}
 
       <Modal visible={processing} transparent animationType="fade">
@@ -210,11 +163,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.card, marginBottom: 12, ...shadow.card,
   },
   recentIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.neutralBg, alignItems: 'center', justifyContent: 'center', marginRight: spacing.iconTextGap },
-  resultHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 4 },
-  resultCard: { backgroundColor: colors.surface, borderRadius: radius.card, padding: 16, marginTop: 16, ...shadow.card },
-  fieldRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.divider },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14, marginTop: 6, borderTopWidth: 2, borderTopColor: colors.primary },
-  uploadAnother: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 24, paddingVertical: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
   modalCard: { backgroundColor: colors.surface, borderRadius: radius.card, padding: 36, alignItems: 'center', marginHorizontal: 40 },
   processingText: { color: colors.textPrimary, marginTop: 16, marginBottom: 6 },
