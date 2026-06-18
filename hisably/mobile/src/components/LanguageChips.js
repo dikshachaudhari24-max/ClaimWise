@@ -23,7 +23,7 @@ export const LanguageChips = () => {
             activeOpacity={0.8}
           >
             {active && <Ionicons name="checkmark" size={14} color="#fff" style={styles.check} />}
-            <Text style={[typography.labelBold, { color: active ? '#fff' : colors.textPrimary }]}>
+            <Text style={[typography.labelBold, { color: active ? '#fff' : colors.primary }]}>
               {l.label}
             </Text>
           </TouchableOpacity>

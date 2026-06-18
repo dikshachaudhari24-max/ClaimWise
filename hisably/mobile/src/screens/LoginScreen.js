@@ -35,6 +35,7 @@ const OtpBoxes = ({ value, onChange, editable, inputRef }) => (
 );
 
 export const LoginScreen = () => {
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState('phone');
@@ -51,7 +52,7 @@ export const LoginScreen = () => {
     setLoading(true);
     try {
       const res = await sendOtp(phone);
-      if (res.message?.startsWith('Dev OTP:')) {
+      if (res?.message?.startsWith('Dev OTP:')) {
         Alert.alert('OTP Sent', res.message);
       }
       setStep('otp');
@@ -83,22 +84,35 @@ export const LoginScreen = () => {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.hero, { paddingTop: insets.top + 14 }]}>
-        <View style={styles.topRow}>
-          <View />
-          <GlobeButton />
+      <View style={[styles.hero, { paddingTop: insets.top + 24 }]}>
+        <View style={styles.heroTopRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[typography.wordmark, styles.wordmark]}>Hisably</Text>
+            <Text style={[typography.body, styles.tagline]}>{t('login.tagline')}</Text>
+          </View>
+          <GlobeButton color="#fff" />
         </View>
       </View>
 
       <View style={styles.sheet}>
-        <View style={styles.handle} />
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={[typography.heroTitle, styles.title]}>{t('login.welcome')}</Text>
           <Text style={[typography.body, styles.subtitle]}>{t('login.subtitle')}</Text>
 
-          <Text style={[typography.labelBold, styles.label]}>{t('login.mobileNumber')}</Text>
+          {step === 'phone' && (
+            <>
+              <Text style={[typography.monoLabel, styles.label]}>{t('login.fullName')}</Text>
+              <PillInput
+                placeholder={t('login.fullNamePlaceholder')}
+                value={name}
+                onChangeText={setName}
+              />
+            </>
+          )}
+
+          <Text style={[typography.monoLabel, styles.label]}>{t('login.mobileNumber')}</Text>
           <PillInput
-            prefix="+91"
+            prefix="IN +91"
             placeholder={t('login.phonePlaceholder')}
             keyboardType="number-pad"
             maxLength={10}
@@ -109,7 +123,7 @@ export const LoginScreen = () => {
 
           {step === 'otp' && (
             <>
-              <Text style={[typography.labelBold, styles.label]}>{t('login.enterOtp')}</Text>
+              <Text style={[typography.monoLabel, styles.label]}>{t('login.enterOtp')}</Text>
               <Text style={[typography.caption, styles.sentTo]}>{t('login.otpSentTo', { masked })}</Text>
               <OtpBoxes value={otp} onChange={onOtpChange} editable inputRef={otpRef} />
               <TouchableOpacity onPress={handleSendOtp}>
@@ -132,28 +146,29 @@ export const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.hero },
-  hero: { height: '28%', paddingHorizontal: spacing.screenH },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  root: { flex: 1, backgroundColor: colors.primary },
+  hero: { paddingHorizontal: spacing.screenH, paddingBottom: 40 },
+  heroTopRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  wordmark: { color: '#fff', fontSize: 34, lineHeight: 40 },
+  tagline: { color: 'rgba(255,255,255,0.85)', marginTop: 4 },
   sheet: {
     flex: 1,
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
-    marginTop: -28,
+    marginTop: -24,
   },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.outlineVariant, alignSelf: 'center', marginTop: 10 },
-  scroll: { paddingHorizontal: spacing.screenH, paddingTop: 16 },
-  title: { color: colors.textPrimary, textAlign: 'center', marginTop: 12 },
-  subtitle: { color: colors.textSecondary, textAlign: 'center', marginTop: 6, marginBottom: 28 },
-  label: { color: colors.textPrimary, marginBottom: 10, marginTop: 16 },
+  scroll: { paddingHorizontal: spacing.screenH, paddingTop: 28 },
+  title: { color: colors.textPrimary },
+  subtitle: { color: colors.textSecondary, marginTop: 6, marginBottom: 12 },
+  label: { color: colors.textSecondary, marginBottom: 8, marginTop: 18 },
   sentTo: { color: colors.textSecondary, marginBottom: 14 },
   otpRow: { flexDirection: 'row', justifyContent: 'space-between' },
   otpBox: {
     width: 48, height: 52, borderRadius: 12, backgroundColor: colors.fieldBg,
     alignItems: 'center', justifyContent: 'center',
   },
-  otpBoxActive: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: '#EEF1FF' },
+  otpBoxActive: { borderWidth: 1.5, borderColor: colors.primary, backgroundColor: colors.primaryLight },
   otpHidden: { position: 'absolute', width: '100%', height: 52, opacity: 0 },
   resend: { color: colors.primary, textAlign: 'right', marginTop: 14 },
   cta: { paddingHorizontal: spacing.screenH, paddingTop: 8 },

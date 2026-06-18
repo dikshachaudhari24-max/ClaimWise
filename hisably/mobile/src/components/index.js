@@ -11,5 +11,6 @@ export { AlertRow } from './AlertRow';
 export { LanguageChips } from './LanguageChips';
 export { GlobeButton } from './GlobeButton';
 export { LandingDocIllustration } from './LandingDocIllustration';
+export { RobotIllustration } from './RobotIllustration';
 export { FloatingTabBar } from './FloatingTabBar';
 export { DonutChart, TrendLine, MiniBars } from './charts';

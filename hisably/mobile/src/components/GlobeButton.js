@@ -6,17 +6,23 @@ import { LANGUAGES, useLang, useSetLang } from '../i18n';
 
 // Globe + current-language chip (used in the Login header). Opens a bottom
 // sheet so the user can switch language before signing in.
-export const GlobeButton = () => {
+export const GlobeButton = ({ color }) => {
   const [open, setOpen] = useState(false);
   const lang = useLang();
   const setLang = useSetLang();
   const current = LANGUAGES.find((l) => l.code === lang) || LANGUAGES[0];
+  const onHero = !!color;
+  const fg = color || colors.primary;
 
   return (
     <>
-      <TouchableOpacity style={styles.button} onPress={() => setOpen(true)} activeOpacity={0.8}>
-        <Ionicons name="globe-outline" size={16} color={colors.primary} />
-        <Text style={[typography.caption, styles.label]}>{current.label}</Text>
+      <TouchableOpacity
+        style={[styles.button, onHero && styles.buttonHero]}
+        onPress={() => setOpen(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="globe-outline" size={16} color={fg} />
+        <Text style={[typography.caption, styles.label, { color: fg }]}>{current.label}</Text>
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
@@ -52,7 +58,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: radius.pill,
   },
-  label: { color: colors.primary, marginLeft: 6 },
+  buttonHero: { backgroundColor: 'rgba(255,255,255,0.18)' },
+  label: { marginLeft: 6 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.surface,
