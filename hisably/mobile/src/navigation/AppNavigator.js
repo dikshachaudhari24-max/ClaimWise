@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { ActivityIndicator, View } from 'react-native';
 import { colors } from '../theme';
+import { FloatingTabBar } from '../components';
 import { useAuthStore } from '../store/authStore';
+import { useLangStore } from '../store/langStore';
 
 import {
   LandingScreen,
@@ -21,37 +23,18 @@ import {
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const tabIcons = {
-  Home: '🏠',
-  Invoice: '📄',
-  GSTR2B: '📊',
-  Tasks: '✅',
-  Voice: '🎙',
-};
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Dashboard" component={DashboardScreen} />
+    <Stack.Screen name="ITCDashboard" component={ITCDashboardScreen} />
+    <Stack.Screen name="Suppliers" component={SupplierScreen} />
+  </Stack.Navigator>
+);
 
 const MainTabs = () => (
   <Tab.Navigator
-    screenOptions={({ route }) => ({
-      tabBarIcon: () => null,
-      tabBarLabel: ({
-        Home: 'होम',
-        Invoice: 'Invoice',
-        GSTR2B: 'GSTR-2B',
-        Tasks: 'Tasks',
-        Voice: 'Voice',
-      }[route.name]),
-      tabBarActiveTintColor: colors.primary,
-      tabBarInactiveTintColor: colors.textSecondary,
-      tabBarStyle: {
-        backgroundColor: colors.surface,
-        borderTopColor: colors.divider,
-        height: 60,
-        paddingBottom: 8,
-        paddingTop: 8,
-      },
-      tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
-      headerShown: false,
-    })}
+    screenOptions={{ headerShown: false }}
+    tabBar={(props) => <FloatingTabBar {...props} />}
   >
     <Tab.Screen name="Home" component={HomeStack} />
     <Tab.Screen name="Invoice" component={InvoiceUploadScreen} />
@@ -59,14 +42,6 @@ const MainTabs = () => (
     <Tab.Screen name="Tasks" component={TasksScreen} />
     <Tab.Screen name="Voice" component={VoiceScreen} />
   </Tab.Navigator>
-);
-
-const HomeStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Dashboard" component={DashboardScreen} />
-    <Stack.Screen name="ITCDashboard" component={ITCDashboardScreen} />
-    <Stack.Screen name="Suppliers" component={SupplierScreen} />
-  </Stack.Navigator>
 );
 
 const AuthStack = () => (
@@ -78,8 +53,12 @@ const AuthStack = () => (
 
 export const AppNavigator = () => {
   const { user, loading, initialize } = useAuthStore();
+  const loadLang = useLangStore((s) => s.loadLang);
 
-  useEffect(() => { initialize(); }, []);
+  useEffect(() => {
+    initialize();
+    loadLang();
+  }, []);
 
   if (loading) {
     return (

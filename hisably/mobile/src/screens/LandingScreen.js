@@ -1,88 +1,98 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { colors, typography } from '../theme';
-import { PrimaryButton } from '../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, spacing, radius, shadow } from '../theme';
+import { PrimaryButton, LanguageChips, LandingDocIllustration } from '../components';
 import { useAuthStore } from '../store/authStore';
-
-const benefits = [
-  { icon: '₹', labelHi: 'CA की ज़रूरत नहीं', labelEn: 'No CA needed for daily tracking', color: colors.success },
-  { icon: '🗣', labelHi: 'हिंदी में समझें', labelEn: 'Ask questions in Hindi', color: colors.primary },
-  { icon: '🔄', labelHi: 'अपना पैसा वापस पाएं', labelEn: 'Recover your blocked ITC', color: colors.warning },
-];
+import { useT } from '../i18n';
 
 export const LandingScreen = ({ navigation }) => {
   const { loginDemo } = useAuthStore();
+  const insets = useSafeAreaInsets();
+  const t = useT();
+
+  const benefits = [
+    { icon: 'scan-outline', color: colors.success, titleKey: 'landing.benefit1.title', descKey: 'landing.benefit1.desc' },
+    { icon: 'sync-outline', color: colors.primary, titleKey: 'landing.benefit2.title', descKey: 'landing.benefit2.desc' },
+    { icon: 'shield-checkmark-outline', color: colors.warning, titleKey: 'landing.benefit3.title', descKey: 'landing.benefit3.desc' },
+  ];
+
   return (
-  <View style={styles.container}>
-    <View style={styles.saffronStripe} />
-    <ScrollView contentContainerStyle={styles.scroll}>
-      <View style={styles.hero}>
-        <Text style={[typography.display, styles.logo]}>Hisably</Text>
-        <Text style={[typography.heading, styles.taglineHi]}>आपका AI GST सहायक</Text>
-        <Text style={[typography.caption, styles.taglineEn]}>Your AI GST Compliance Assistant</Text>
+    <View style={styles.root}>
+      <View style={[styles.hero, { paddingTop: insets.top }]}>
+        <LandingDocIllustration />
+        <View style={styles.heroCenter}>
+          <Text style={[typography.heroTitle, styles.wordmark]}>Hisably</Text>
+          <Text style={[typography.title, styles.tagline]}>{t('app.tagline')}</Text>
+        </View>
       </View>
 
-      <View style={styles.benefitsContainer}>
-        {benefits.map((b, i) => (
-          <View key={i} style={[styles.benefitCard, { borderLeftColor: b.color }]}>
-            <Text style={styles.benefitIcon}>{b.icon}</Text>
-            <View style={styles.benefitText}>
-              <Text style={[typography.body, { color: colors.textPrimary }]}>{b.labelHi}</Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>{b.labelEn}</Text>
-            </View>
+      <View style={styles.sheet}>
+        <View style={styles.handle} />
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={[typography.caption, styles.langLabel]}>{t('landing.selectLanguage')}</Text>
+          <LanguageChips />
+
+          <View style={styles.benefits}>
+            {benefits.map((b, i) => (
+              <View key={i} style={[styles.benefitCard, { borderLeftColor: b.color }]}>
+                <View style={styles.benefitIcon}>
+                  <Ionicons name={b.icon} size={22} color={colors.primary} />
+                </View>
+                <View style={styles.benefitText}>
+                  <Text style={[typography.section, { color: colors.textPrimary }]}>{t(b.titleKey)}</Text>
+                  <Text style={[typography.body, { color: colors.textSecondary, marginTop: 2 }]}>{t(b.descKey)}</Text>
+                </View>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        </ScrollView>
 
-      <View style={styles.aboutSection}>
-        <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
-          Hisably छोटे व्यापारियों के लिए बनाया गया है जो GST compliance आसान बनाना चाहते हैं — बिना किसी CA के।
-        </Text>
+        <View style={[styles.cta, { paddingBottom: insets.bottom + 16 }]}>
+          <PrimaryButton title={t('common.getStarted')} icon="arrow-forward" onPress={() => navigation.navigate('Login')} />
+          <Text style={[typography.body, styles.link]} onPress={() => navigation.navigate('Login')}>
+            {t('landing.haveAccount')}
+          </Text>
+          <Text style={[typography.body, styles.demoLink]} onPress={loginDemo}>
+            {t('landing.demoMode')}
+          </Text>
+        </View>
       </View>
-    </ScrollView>
-
-    <View style={styles.ctaSection}>
-      <PrimaryButton title="शुरू करें" onPress={() => navigation.navigate('Login')} />
-      <Text
-        style={[typography.body, styles.loginLink]}
-        onPress={() => navigation.navigate('Login')}
-      >
-        पहले से account है? Login करें
-      </Text>
-      <Text
-        style={[typography.body, styles.demoLink]}
-        onPress={loginDemo}
-      >
-        Demo Mode में देखें
-      </Text>
     </View>
-  </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
-  saffronStripe: { height: 3, backgroundColor: colors.saffronAccent },
-  scroll: { padding: 24, paddingBottom: 120 },
-  hero: { alignItems: 'center', marginTop: 40, marginBottom: 32 },
-  logo: { color: colors.primary, fontSize: 36 },
-  taglineHi: { color: colors.textPrimary, marginTop: 8 },
-  taglineEn: { color: colors.textSecondary, marginTop: 4 },
-  benefitsContainer: { marginBottom: 24 },
+  root: { flex: 1, backgroundColor: colors.hero },
+  hero: { height: '42%', paddingHorizontal: spacing.screenH },
+  heroCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  wordmark: { color: colors.primary, fontSize: 40, lineHeight: 48 },
+  tagline: { color: colors.primary, opacity: 0.8, marginTop: 8 },
+  sheet: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    marginTop: -28,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.outlineVariant, alignSelf: 'center', marginTop: 10 },
+  scroll: { paddingHorizontal: spacing.screenH, paddingTop: 20, paddingBottom: 12 },
+  langLabel: { color: colors.textSecondary, marginBottom: 10 },
+  benefits: { marginTop: spacing.sectionGap - 8 },
   benefitCard: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: radius.card,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: spacing.cardGap,
     flexDirection: 'row',
     alignItems: 'center',
     borderLeftWidth: 4,
-    elevation: 2,
+    ...shadow.card,
   },
-  benefitIcon: { fontSize: 24, marginRight: 16 },
+  benefitIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.hero, alignItems: 'center', justifyContent: 'center', marginRight: spacing.iconTextGap },
   benefitText: { flex: 1 },
-  aboutSection: { paddingHorizontal: 16, marginBottom: 24 },
-  ctaSection: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 24, backgroundColor: colors.surface },
-  loginLink: { color: colors.primary, textAlign: 'center', marginTop: 12 },
+  cta: { paddingHorizontal: spacing.screenH, paddingTop: 12 },
+  link: { color: colors.primary, textAlign: 'center', marginTop: 14 },
   demoLink: { color: colors.textSecondary, textAlign: 'center', marginTop: 12 },
 });

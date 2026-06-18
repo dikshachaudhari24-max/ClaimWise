@@ -1,39 +1,44 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors, typography } from '../theme';
+import { Text, TouchableOpacity, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, radius, shadow } from '../theme';
 
 const typeStyles = {
-  success: { bg: colors.successLight, text: colors.success },
-  warning: { bg: colors.warningLight, text: colors.warning },
-  danger: { bg: colors.dangerLight, text: colors.danger },
+  eligible: { color: colors.success, bg: colors.successLight, icon: 'checkmark-circle' },
+  recoverable: { color: colors.warning, bg: colors.warningLight, icon: 'time' },
+  blocked: { color: colors.danger, bg: colors.dangerLight, icon: 'alert-circle' },
+  // legacy aliases
+  success: { color: colors.success, bg: colors.successLight, icon: 'checkmark-circle' },
+  warning: { color: colors.warning, bg: colors.warningLight, icon: 'time' },
+  danger: { color: colors.danger, bg: colors.dangerLight, icon: 'alert-circle' },
 };
 
-export const ITCAmountCard = ({ amount, labelHi, labelEn, type = 'success', onPress }) => {
-  const style = typeStyles[type];
+const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+
+export const ITCAmountCard = ({ amount, label, type = 'eligible', onPress }) => {
+  const s = typeStyles[type] || typeStyles.eligible;
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: style.bg }]}
+      style={[styles.card, { backgroundColor: s.bg, borderLeftColor: s.color }]}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={onPress ? 0.85 : 1}
     >
-      <Text style={[typography.amount, { color: style.text }]}>
-        ₹{amount?.toLocaleString('en-IN') || '0'}
-      </Text>
-      <Text style={[typography.body, styles.labelHi]}>{labelHi}</Text>
-      {labelEn && <Text style={[typography.caption, styles.labelEn]}>{labelEn}</Text>}
+      <View style={styles.iconWrap}>
+        <Ionicons name={s.icon} size={22} color={s.color} />
+      </View>
+      <Text style={[typography.labelBold, styles.label, { color: s.color }]}>{label}</Text>
+      <Text style={[typography.amount, { color: s.color }]}>{formatINR(amount)}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radius.card,
     padding: 16,
-    flex: 1,
-    minHeight: 100,
-    elevation: 2,
-    marginHorizontal: 4,
+    borderLeftWidth: 4,
+    ...shadow.card,
   },
-  labelHi: { color: colors.textPrimary, marginTop: 4 },
-  labelEn: { color: colors.textSecondary, marginTop: 2 },
+  iconWrap: { marginBottom: 8 },
+  label: { marginBottom: 4 },
 });
