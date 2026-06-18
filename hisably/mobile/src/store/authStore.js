@@ -1,47 +1,52 @@
 import { create } from 'zustand';
 import { api, setAuthToken } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TEST_OTP = '123456';
-const TEST_MODE = false;
+const AUTH_KEY = '@hisably_auth';
 
 export const useAuthStore = create((set) => ({
   user: null,
   session: null,
-  loading: false,
+  loading: true,
+
+  initialize: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(AUTH_KEY);
+      if (stored) {
+        const { user, session } = JSON.parse(stored);
+        setAuthToken(session.access_token);
+        set({ user, session, loading: false });
+        return;
+      }
+    } catch (_) {}
+    set({ loading: false });
+  },
 
   sendOtp: async (phone) => {
-    if (TEST_MODE) return;
-    await api.sendOtp(phone);
+    const res = await api.sendOtp(phone);
+    return res;
   },
 
   verifyOtp: async (phone, otp) => {
-    if (TEST_MODE) {
-      if (otp === TEST_OTP) {
-        setAuthToken('test-token');
-        set({
-          user: { id: '00000000-0000-0000-0000-000000000001', phone: `+91${phone}`, email: '' },
-          session: { access_token: 'test-token' },
-        });
-        return;
-      }
-      throw new Error('Wrong OTP. Test OTP: 123456');
-    }
-
     const result = await api.verifyOtp(phone, otp);
+    const user = { id: result.user_id, phone: result.phone || `+91${phone}` };
+    const session = { access_token: result.token };
     setAuthToken(result.token);
-    set({
-      user: { id: result.user_id, phone: result.phone },
-      session: { access_token: result.token },
-    });
+    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify({ user, session }));
+    set({ user, session });
   },
 
-  loginDemo: () => {
+  loginDemo: async () => {
     setAuthToken('demo-token');
-    set({ user: { id: 'demo', email: 'demo@hisably.in' }, session: { access_token: 'demo-token' } });
+    const user = { id: 'demo', email: 'demo@hisably.in' };
+    const session = { access_token: 'demo-token' };
+    await AsyncStorage.setItem(AUTH_KEY, JSON.stringify({ user, session }));
+    set({ user, session });
   },
 
   logout: async () => {
     setAuthToken(null);
+    await AsyncStorage.removeItem(AUTH_KEY);
     set({ user: null, session: null });
   },
 }));

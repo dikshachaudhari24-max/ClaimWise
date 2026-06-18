@@ -3,6 +3,11 @@ from fastapi import Header, HTTPException
 
 from app.config import settings
 
+DEV_TOKENS = {
+    "test-token": {"uid": "00000000-0000-0000-0000-000000000001", "email": "", "role": "authenticated"},
+    "demo-token": {"uid": "00000000-0000-0000-0000-000000000002", "email": "demo@hisably.in", "role": "authenticated"},
+}
+
 
 async def verify_jwt(authorization: str = Header(...)) -> dict:
     """Verify Supabase JWT token and return user payload with 'uid' field."""
@@ -10,6 +15,9 @@ async def verify_jwt(authorization: str = Header(...)) -> dict:
         raise HTTPException(status_code=401, detail="Invalid or missing Authorization header")
 
     token = authorization.replace("Bearer ", "")
+
+    if settings.APP_ENV == "development" and token in DEV_TOKENS:
+        return DEV_TOKENS[token]
 
     try:
         payload = jwt.decode(

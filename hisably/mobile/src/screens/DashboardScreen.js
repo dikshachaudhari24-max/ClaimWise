@@ -16,11 +16,13 @@ export const DashboardScreen = ({ navigation }) => {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
+    const timeout = (p, ms = 8000) =>
+      Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
     try {
       const [itcData, riskData, taskData] = await Promise.all([
-        api.getItcSummary().catch(() => null),
-        api.getRiskScore().catch(() => null),
-        api.getTasks().catch(() => ({ tasks: [] })),
+        timeout(api.getItcSummary()).catch(() => ({ total_eligible: 0, total_recoverable: 0, total_blocked: 0 })),
+        timeout(api.getRiskScore()).catch(() => ({ score: 0 })),
+        timeout(api.getTasks()).catch(() => ({ tasks: [] })),
       ]);
       setItc(itcData);
       setRisk(riskData);

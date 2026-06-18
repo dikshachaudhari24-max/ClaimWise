@@ -1,4 +1,19 @@
-const API_BASE = 'https://washbasin-relenting-monologue.ngrok-free.dev';
+import { Platform } from 'react-native';
+
+// ============================================================================
+// IMPORTANT: To run on a PHYSICAL PHONE, set this to your computer's local IP.
+// Find it with `ifconfig` (Mac/Linux) or `ipconfig` (Windows) — looks like
+// 192.168.x.x. Your phone and computer must be on the same WiFi network.
+// Example: const LAN_IP = '192.168.1.42';
+// Leave as null to use emulator defaults (10.0.2.2 for Android emulator).
+// ============================================================================
+const LAN_IP = null;
+
+const API_BASE = LAN_IP
+  ? `http://${LAN_IP}:8000`
+  : Platform.OS === 'android'
+    ? 'http://10.0.2.2:8000'
+    : 'http://localhost:8000';
 
 let authToken = null;
 
@@ -6,12 +21,17 @@ export const setAuthToken = (token) => {
   authToken = token;
 };
 
+export const getAuthToken = () => authToken;
+
 const request = async (path, options = {}) => {
   const headers = {
-    'Content-Type': 'application/json',
     ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...options.headers,
   };
+
+  if (!options.headers?.['Content-Type'] && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
@@ -28,28 +48,20 @@ export const api = {
   verifyOtp: (phone, otp) =>
     request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, otp }) }),
 
-
   getInvoices: (page = 1, perPage = 20) =>
     request(`/invoice/list?page=${page}&per_page=${perPage}`),
 
   uploadInvoice: async (fileUri, fileName) => {
     const form = new FormData();
-    form.append('file', { uri: fileUri, name: fileName, type: 'application/octet-stream' });
-    return request('/invoice/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'multipart/form-data' },
-      body: form,
-    });
+    const type = fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
+    form.append('file', { uri: fileUri, name: fileName, type });
+    return request('/invoice/upload', { method: 'POST', body: form });
   },
 
   uploadGstr2b: async (fileUri, fileName) => {
     const form = new FormData();
     form.append('file', { uri: fileUri, name: fileName, type: 'text/csv' });
-    return request('/gstr2b/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'multipart/form-data' },
-      body: form,
-    });
+    return request('/gstr2b/upload', { method: 'POST', body: form });
   },
 
   getMismatches: () => request('/gstr2b/mismatches'),
@@ -75,4 +87,6 @@ export const api = {
   chatQuery: (query) =>
     request('/chatbot/query', { method: 'POST', body: JSON.stringify({ query }) }),
   getAnalytics: (month) => request(`/analytics/monthly${month ? `?month=${month}` : ''}`),
+  getInvoiceDetail: (invoiceId) => request(`/invoice/detail?invoice_id=${invoiceId}`),
+  health: () => request('/health'),
 };

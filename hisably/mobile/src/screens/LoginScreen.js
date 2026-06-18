@@ -50,7 +50,10 @@ export const LoginScreen = () => {
     if (phone.length !== 10) return Alert.alert('', t('login.invalidPhone'));
     setLoading(true);
     try {
-      await sendOtp(phone);
+      const res = await sendOtp(phone);
+      if (res.message?.startsWith('Dev OTP:')) {
+        Alert.alert('OTP Sent', res.message);
+      }
       setStep('otp');
       setTimeout(() => otpRef.current?.focus(), 150);
     } catch (e) {
