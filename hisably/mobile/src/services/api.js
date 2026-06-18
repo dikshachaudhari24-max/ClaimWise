@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 // Example: const LAN_IP = '192.168.1.42';
 // Leave as null to use emulator defaults (10.0.2.2 for Android emulator).
 // ============================================================================
-const LAN_IP = null;
+const LAN_IP = '172.20.153.43';
 
 const API_BASE = LAN_IP
   ? `http://${LAN_IP}:8000`
