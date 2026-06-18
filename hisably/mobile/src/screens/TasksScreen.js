@@ -13,7 +13,7 @@ const statusMeta = {
 };
 const filterStatus = [null, 'pending', 'in_progress', 'completed'];
 
-export const TasksScreen = () => {
+export const TasksScreen = ({ navigation }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState(0);
@@ -46,7 +46,7 @@ export const TasksScreen = () => {
   const filtered = activeFilter === 0 ? tasks : tasks.filter((x) => x.status === filterStatus[activeFilter]);
 
   return (
-    <Screen title={t('tasks.title')} subtitle={t('tasks.tagline')} heroHeight={150} leftIcon="notifications-outline" rightIcons={[{ name: 'ellipsis-vertical' }]}>
+    <Screen title={t('tasks.title')} subtitle={t('tasks.tagline')} heroHeight={158} leftIcon="notifications-outline" avatar="RK" onAvatarPress={() => navigation.navigate('Profile')}>
       {loading ? (
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
       ) : (
