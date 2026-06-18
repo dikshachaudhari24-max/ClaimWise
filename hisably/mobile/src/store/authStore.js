@@ -28,11 +28,10 @@ export const useAuthStore = create((set) => ({
   },
 
   verifyOtp: async (phone, otp) => {
-    const res = await api.verifyOtp(phone, otp);
-    if (!res.success) throw new Error(res.message || 'Verification failed');
-    const user = { id: res.user_id, phone: `+91${phone}` };
-    const session = { access_token: res.token };
-    setAuthToken(res.token);
+    const result = await api.verifyOtp(phone, otp);
+    const user = { id: result.user_id, phone: result.phone || `+91${phone}` };
+    const session = { access_token: result.token };
+    setAuthToken(result.token);
     await AsyncStorage.setItem(AUTH_KEY, JSON.stringify({ user, session }));
     set({ user, session });
   },
