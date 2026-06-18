@@ -407,6 +407,51 @@ def get_user_by_phone(phone: str) -> dict | None:
     return result.data[0] if result.data else None
 
 
+def create_user(phone: str) -> dict:
+    client = get_admin_client()
+    result = client.table("users").insert({"phone": phone, "is_verified": True}).execute()
+    return result.data[0] if result.data else {}
+
+
+def verify_user(user_id: str) -> dict:
+    client = get_admin_client()
+    result = client.table("users").update({"is_verified": True}).eq("id", user_id).execute()
+    return result.data[0] if result.data else {}
+
+
+# ──────────────────────────── OTP ────────────────────────────
+
+def store_otp(phone: str, otp: str, expires_at: str) -> dict:
+    client = get_admin_client()
+    result = client.table("otp_codes").insert({
+        "phone": phone,
+        "otp": otp,
+        "expires_at": expires_at,
+        "verified": False,
+    }).execute()
+    return result.data[0] if result.data else {}
+
+
+def get_latest_otp(phone: str) -> dict | None:
+    client = get_admin_client()
+    result = (
+        client.table("otp_codes")
+        .select("*")
+        .eq("phone", phone)
+        .eq("verified", False)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def mark_otp_verified(otp_id: str) -> dict:
+    client = get_admin_client()
+    result = client.table("otp_codes").update({"verified": True}).eq("id", otp_id).execute()
+    return result.data[0] if result.data else {}
+
+
 def _next_month(month: str) -> str:
     year, m = month.split("-")
     m_int = int(m)

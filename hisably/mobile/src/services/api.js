@@ -22,6 +22,13 @@ const request = async (path, options = {}) => {
 };
 
 export const api = {
+  sendOtp: (phone) =>
+    request('/auth/send-otp', { method: 'POST', body: JSON.stringify({ phone }) }),
+
+  verifyOtp: (phone, otp) =>
+    request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ phone, otp }) }),
+
+
   getInvoices: (page = 1, perPage = 20) =>
     request(`/invoice/list?page=${page}&per_page=${perPage}`),
 
